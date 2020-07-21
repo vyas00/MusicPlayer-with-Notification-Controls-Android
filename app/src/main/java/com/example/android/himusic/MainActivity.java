@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
@@ -19,6 +20,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final String TAG="MainActivity";
 
     ListView listViewForSongs;
     String[] items;
@@ -42,11 +45,12 @@ public class MainActivity extends AppCompatActivity {
                  .withListener(new PermissionListener() {
                      @Override
                      public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-displaySongs();
+                      displaySongs();
                      }
 
                      @Override
                      public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+                         Toast.makeText(MainActivity.this, "Cannot show media files, please allow the permission", Toast.LENGTH_LONG).show();
 
                      }
 
