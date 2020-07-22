@@ -19,7 +19,7 @@
             android:layout_width="250dp"
             android:layout_height="250dp"
             android:layout_gravity="center"
-            android:src="@drawable/music_background" />
+            android:src="@drawable/back" />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
