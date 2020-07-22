@@ -1,5 +1,6 @@
 package com.example.android.himusic;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
@@ -40,6 +42,10 @@ public class PlayerActivity extends AppCompatActivity {
         songSeekBar=findViewById(R.id.seek_bar);
         tvSongName =findViewById(R.id.current_song);
 
+        getSupportActionBar().setTitle("Now Playing");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
 
         updateSeekBar=new Thread()
         {
@@ -67,7 +73,8 @@ public class PlayerActivity extends AppCompatActivity {
 
         if(myMediaPlayer!=null)
         {
-            myMediaPlayer.stop(); myMediaPlayer.release();
+            myMediaPlayer.stop();
+            myMediaPlayer.release();
         }
         Intent intent= getIntent();
         Bundle bundle= intent.getExtras();
@@ -122,7 +129,7 @@ public class PlayerActivity extends AppCompatActivity {
                     myMediaPlayer.pause();
                 }
                 else{
-                    btnPause.setBackgroundResource(R.drawable.icon_play);
+                    btnPause.setBackgroundResource(R.drawable.icon_pause);
                     myMediaPlayer.start();
                 }
             }
@@ -164,5 +171,12 @@ public class PlayerActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if(item.getItemId()==android.R.id.home) onBackPressed();
+        return super.onOptionsItemSelected(item);
     }
 }
