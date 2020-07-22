@@ -8,6 +8,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -24,8 +25,9 @@ public class PlayerActivity extends AppCompatActivity {
     Button btnPrevious;
     TextView tvSongName;
     SeekBar songSeekBar;
+    private  final  String TAG="PlayerActivity";
 
-    MediaPlayer myMediaPlayer;
+  private static MediaPlayer myMediaPlayer;
     int position;
     String sName;
     ArrayList<File> mySongs;
@@ -35,6 +37,7 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
+        Log.d(TAG,"onCreated invoked");
 
         btnNext=findViewById(R.id.btn_next);
         btnPause=findViewById(R.id.btn_pause);
@@ -45,6 +48,27 @@ public class PlayerActivity extends AppCompatActivity {
         getSupportActionBar().setTitle("Now Playing");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        Intent intent= getIntent();
+        Bundle bundle= intent.getExtras();
+
+        mySongs= (ArrayList) bundle.getParcelableArrayList("songs");
+        sName=mySongs.get(position).getName().toString();
+
+        String songName= intent.getStringExtra("songName");
+
+        tvSongName.setText(songName);
+        tvSongName.setSelected(true);
+
+        position=bundle.getInt("pos");
+
+
+        if(myMediaPlayer!=null)
+        {
+            myMediaPlayer.stop();
+            myMediaPlayer.release();
+        }
+
 
 
         updateSeekBar=new Thread()
@@ -71,25 +95,6 @@ public class PlayerActivity extends AppCompatActivity {
         };
 
 
-        if(myMediaPlayer!=null)
-        {
-            myMediaPlayer.stop();
-            myMediaPlayer.release();
-        }
-        Intent intent= getIntent();
-        Bundle bundle= intent.getExtras();
-
-        mySongs= (ArrayList) bundle.getParcelableArrayList("songs");
-        sName=mySongs.get(position).getName().toString();
-
-        String songName= intent.getStringExtra("songName");
-
-        tvSongName.setText(songName);
-        tvSongName.setSelected(true);
-
-        position=bundle.getInt("pos");
-
-
         Uri uriSong= Uri.parse(mySongs.get(position).toString());
         myMediaPlayer= MediaPlayer.create(getApplicationContext(), uriSong);
         myMediaPlayer.start();
@@ -100,6 +105,7 @@ public class PlayerActivity extends AppCompatActivity {
 
         songSeekBar.getProgressDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.MULTIPLY);
         songSeekBar.getThumb().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+
 
         songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -117,6 +123,7 @@ public class PlayerActivity extends AppCompatActivity {
                 myMediaPlayer.seekTo(seekBar.getProgress());
             }
         });
+
 
         btnPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,10 +180,52 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
+/*
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(PlayerActivity.this, MainActivity.class));
+    }
+*/
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
         if(item.getItemId()==android.R.id.home) onBackPressed();
         return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG,"onStart invoked");
+
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG,"onResume invoked");
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG,"onPause invoked");
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG,"onStop invoked");
+    }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.d(TAG,"onRestart invoked");
+
+
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG,"onDestroy invoked");
     }
 }
