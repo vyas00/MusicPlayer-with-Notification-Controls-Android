@@ -3,8 +3,11 @@ package com.example.android.himusic;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -25,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         listViewForSongs=findViewById(R.id.song_listView);
 
- displaySongs();
+          displaySongs();
 
     }
 
@@ -62,6 +65,20 @@ public class MainActivity extends AppCompatActivity {
         }
         ArrayAdapter<String> myAdapter= new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         listViewForSongs.setAdapter(myAdapter);
+
+        listViewForSongs.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String songName= listViewForSongs.getItemAtPosition(position).toString();
+
+                startActivity(new Intent(getApplicationContext(), PlayerActivity.class)
+                        .putExtra("songs",mySongs)
+                        .putExtra("songName", songName).putExtra("pos", position));
+
+
+            }
+        });
     }
 
 
