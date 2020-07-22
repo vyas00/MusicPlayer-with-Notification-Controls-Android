@@ -24,7 +24,7 @@ public class PlayerActivity extends AppCompatActivity {
     Button btnNext;
     Button btnPrevious;
     TextView tvSongName;
-    SeekBar songSeekBar;
+    private static SeekBar songSeekBar;
     private  final  String TAG="PlayerActivity";
 
   private static MediaPlayer myMediaPlayer;
@@ -87,7 +87,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
         if(myMediaPlayer!=null)
-        {
+        {   Log.d(TAG,"entered the music resource releasing loop");
             myMediaPlayer.stop();
             myMediaPlayer.release();
         }
@@ -97,12 +97,11 @@ public class PlayerActivity extends AppCompatActivity {
         Uri uriSong= Uri.parse(mySongs.get(position).toString());
         myMediaPlayer= MediaPlayer.create(getApplicationContext(), uriSong);
         myMediaPlayer.start();
-
-
+        updateSeekBar.start();
         songSeekBar.setMax(myMediaPlayer.getDuration());
 
 
-        updateSeekBar.start();
+
 
 
         songSeekBar.getProgressDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.MULTIPLY);
@@ -152,7 +151,7 @@ public class PlayerActivity extends AppCompatActivity {
             public void onClick(View v) {
                 myMediaPlayer.stop();
                 myMediaPlayer.release();
-                position=((position+1)%mySongs.size());
+                position=((position+1)%(mySongs.size()));
 
                 Uri uriSong= Uri.parse(mySongs.get(position).toString());
                 myMediaPlayer=MediaPlayer.create(getApplicationContext(), uriSong);
@@ -230,5 +229,6 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG,"onDestroy invoked");
+
     }
 }

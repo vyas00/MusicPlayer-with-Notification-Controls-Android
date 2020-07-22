@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayAdapter<String> myAdapter= new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         listViewForSongs.setAdapter(myAdapter);
+        ListItemListener();
     }
 
 
@@ -119,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "onStart invoked");
-     ListItemListener();
+
     }
         @Override
     protected void onResume() {
