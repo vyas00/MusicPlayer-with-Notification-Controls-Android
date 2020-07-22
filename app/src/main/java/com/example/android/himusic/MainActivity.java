@@ -3,7 +3,10 @@ package com.example.android.himusic;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -14,6 +17,9 @@ import android.widget.ListView;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         listViewForSongs=findViewById(R.id.song_listView);
 
         displaySongs();
+
 
     }
 
@@ -61,15 +68,34 @@ public class MainActivity extends AppCompatActivity {
     void displaySongs()
     {
          mySongs= findSong(Environment.getExternalStorageDirectory());
-        items= new String[mySongs.size()];
+         items= new String[mySongs.size()];
 
         for(int i=0;i<mySongs.size();i++)
         {
-            items[i]= mySongs.get(i).getName().toString().replace(".mp3","")/*.replace(".wav", "")*/;
+            items[i]= mySongs.get(i).getName().toString().replace(".mp3","").replace(".wav", "");
         }
+
+
+/*
+        ContentResolver musicResolver = getContentResolver();
+        Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+
+        if(musicCursor!=null && musicCursor.moveToFirst()){
+            int titleColumn = musicCursor.getColumnIndex
+                    (android.provider.MediaStore.Audio.Media.TITLE);
+            do {
+                String thisTitle = musicCursor.getString(titleColumn);
+                items.add(thisTitle);
+            }
+            while (musicCursor.moveToNext());
+        }
+*/
+
         ArrayAdapter<String> myAdapter= new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
         listViewForSongs.setAdapter(myAdapter);
     }
+
 
     void ListItemListener()
     {
@@ -81,7 +107,8 @@ public class MainActivity extends AppCompatActivity {
 
                 startActivity(new Intent(getApplicationContext(), PlayerActivity.class)
                         .putExtra("songs",mySongs)
-                        .putExtra("songName", songName).putExtra("pos", position));
+                        .putExtra("songName", songName)
+                        .putExtra("pos", position));
 
             }
         });

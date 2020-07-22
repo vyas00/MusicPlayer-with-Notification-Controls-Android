@@ -45,32 +45,6 @@ public class PlayerActivity extends AppCompatActivity {
         songSeekBar=findViewById(R.id.seek_bar);
         tvSongName =findViewById(R.id.current_song);
 
-        getSupportActionBar().setTitle("Now Playing");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
-        Intent intent= getIntent();
-        Bundle bundle= intent.getExtras();
-
-        mySongs= (ArrayList) bundle.getParcelableArrayList("songs");
-        sName=mySongs.get(position).getName().toString();
-
-        String songName= intent.getStringExtra("songName");
-
-        tvSongName.setText(songName);
-        tvSongName.setSelected(true);
-
-        position=bundle.getInt("pos");
-
-
-        if(myMediaPlayer!=null)
-        {
-            myMediaPlayer.stop();
-            myMediaPlayer.release();
-        }
-
-
-
         updateSeekBar=new Thread()
         {
             @Override
@@ -95,16 +69,45 @@ public class PlayerActivity extends AppCompatActivity {
         };
 
 
+
+        getSupportActionBar().setTitle("Now Playing");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+
+        Intent intent= getIntent();
+        Bundle bundle= intent.getExtras();
+        mySongs= (ArrayList) bundle.getParcelableArrayList("songs");
+        sName=mySongs.get(position).getName().toString();
+        String songName= intent.getStringExtra("songName");
+        tvSongName.setText(songName);
+        tvSongName.setSelected(true);
+        position=bundle.getInt("pos");
+
+
+
+        if(myMediaPlayer!=null)
+        {
+            myMediaPlayer.stop();
+            myMediaPlayer.release();
+        }
+
+
+
         Uri uriSong= Uri.parse(mySongs.get(position).toString());
         myMediaPlayer= MediaPlayer.create(getApplicationContext(), uriSong);
         myMediaPlayer.start();
 
+
         songSeekBar.setMax(myMediaPlayer.getDuration());
+
 
         updateSeekBar.start();
 
+
         songSeekBar.getProgressDrawable().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.MULTIPLY);
         songSeekBar.getThumb().setColorFilter(getResources().getColor(R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+
 
 
         songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
