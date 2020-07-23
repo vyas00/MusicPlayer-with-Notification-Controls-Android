@@ -1,32 +1,46 @@
 package com.example.android.himusic;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
 import java.util.ArrayList;
 
 public class MusicService extends Service implements
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
         MediaPlayer.OnCompletionListener {
+    private final String TAG="MusicService";
 
     private MediaPlayer player;
     private ArrayList<Song> songs;
-    private int songPosn;
-
+    private int songPosition;
+    private String songTitle;
+    private  String songArtist;
     private final IBinder musicBind = new MusicBinder();
+
+    private  MusicController controller;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        songPosn=0;
+        songPosition =0;
         player=new MediaPlayer();
         initMusicPlayer();
     }
@@ -80,15 +94,58 @@ public class MusicService extends Service implements
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+
+        ControllerShow(controller);
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            startNotification();
+        else
+            startForeground(1, new Notification());
+
+    }
+
+    public void ControllerShow(MusicController controller)
+    {
+        this.controller=controller;
+        if(this.controller!=null) this.controller.show(0);
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startNotification(){
+        String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
+        String channelName = "My Notification Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.icon_play)
+                .setContentTitle(songTitle)
+                .setOngoing(true)
+                .setTicker(songTitle)
+                .setContentText("Artist: "+songArtist)
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .build();
+        startForeground(2, notification);
     }
 
     public void setSong(int songIndex){
-        songPosn=songIndex;
+        songPosition =songIndex;
     }
     public void playSong(){
         player.reset();
 
-        Song playSong = songs.get(songPosn);
+        Song playSong = songs.get(songPosition);
+        songTitle=playSong.getTitle();
+        songArtist=playSong.getArtist();
 
         long currSong = playSong.getID();
 
@@ -129,13 +186,13 @@ public class MusicService extends Service implements
         player.start();
     }
     public void playPrev(){
-        songPosn--;
-        if(songPosn<0) songPosn=songs.size()-1;
+        songPosition--;
+        if(songPosition <0) songPosition =songs.size()-1;
         playSong();
     }
     public void playNext(){
-        songPosn++;
-        if(songPosn>=songs.size()) songPosn=0;
+        songPosition++;
+        if(songPosition >=songs.size()) songPosition =0;
         playSong();
     }
 
@@ -143,6 +200,7 @@ public class MusicService extends Service implements
     public void onDestroy() {
         player.stop();
         player.release();
+        stopForeground(true);
         super.onDestroy();
     }
 }

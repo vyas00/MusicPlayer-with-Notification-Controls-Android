@@ -34,7 +34,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private MusicService musicService;
     private Intent playIntent;
     private boolean musicBound=false;
-    private MusicController controller;
+    private static MusicController controller;
+    private boolean paused=false, playbackPaused=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +45,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
         songView=findViewById(R.id.song_list);
         songList = new ArrayList<Song>();
-        getSongList();
+
+          getSongList();
 
         Collections.sort(songList, new Comparator<Song>(){
             public int compare(Song a, Song b){
@@ -55,7 +57,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         SongAdapter songAdapter = new SongAdapter(this, songList);
         songView.setAdapter(songAdapter);
 
+
         setController();
+
+
 
     }
     @Override
@@ -70,15 +75,21 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             case R.id.action_end:
                 stopService(playIntent);
                 musicService =null;
-                System.exit(0);
+                finish();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void songPicked(View view){
+        musicService.ControllerShow(controller);
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playSong();
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
+        controller.show(0);
     }
 
     private ServiceConnection musicConnection = new ServiceConnection(){
@@ -140,16 +151,24 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     protected void onResume() {
         super.onResume();
         Log.d(TAG,"onResume invoked");
+            if(paused){
+                setController();
+                paused=false;
+               if(controller!=null) musicService.ControllerShow(controller);
+            }
     }
     @Override
     protected void onPause() {
         super.onPause();
         Log.d(TAG,"onPause invoked");
+        paused=true;
+        playbackPaused=true;
     }
     @Override
     protected void onStop() {
         super.onStop();
         Log.d(TAG,"onStop invoked");
+        controller.hide();
     }
     @Override
     protected void onRestart() {
@@ -169,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
 
     private void setController(){
-        controller = new MusicController(this);
+        if(controller==null) controller = new MusicController(this);
 
         controller.setPrevNextListeners(new View.OnClickListener() {
             @Override
@@ -185,15 +204,24 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         controller.setMediaPlayer(this);
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
+
     }
 
     private void playNext(){
         musicService.playNext();
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
         controller.show(0);
     }
 
     private void playPrev(){
         musicService.playPrev();
+        if(playbackPaused){
+            setController();
+            playbackPaused=false;
+        }
         controller.show(0);
     }
 
@@ -209,7 +237,9 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     @Override
     public int getDuration() {
-        return 0;
+        if(musicService!=null && musicBound && musicService.isPng())
+        return musicService.getDur();
+        else return 0;
     }
 
     @Override

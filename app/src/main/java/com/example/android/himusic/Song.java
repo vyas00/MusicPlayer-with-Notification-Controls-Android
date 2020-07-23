@@ -1,6 +1,8 @@
 package com.example.android.himusic;
 
 public class Song {
+    private final String TAG="Song";
+
     private long id;
     private String title;
     private String artist;
