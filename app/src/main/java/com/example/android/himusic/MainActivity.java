@@ -160,10 +160,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+
         Log.d(TAG,"onDestroy invoked");
+        if (musicBound) unbindService(musicConnection);
         stopService(playIntent);
         musicService =null;
+        super.onDestroy();
     }
 
     private void setController(){
@@ -184,13 +186,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
     }
-    //play next
+
     private void playNext(){
         musicService.playNext();
         controller.show(0);
     }
 
-    //play previous
     private void playPrev(){
         musicService.playPrev();
         controller.show(0);
@@ -253,5 +254,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     @Override
     public int getAudioSessionId() {
         return 0;
+    }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
     }
 }

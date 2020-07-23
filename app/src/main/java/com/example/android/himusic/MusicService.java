@@ -54,8 +54,6 @@ public class MusicService extends Service implements
 
     @Override
     public boolean onUnbind(Intent intent) {
-        player.stop();
-        player.release();
         return false;
     }
 
@@ -67,11 +65,15 @@ public class MusicService extends Service implements
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-
+        if(player.getCurrentPosition()>0){
+            mp.reset();
+            playNext();
+        }
     }
 
     @Override
     public boolean onError(MediaPlayer mp, int what, int extra) {
+        mp.reset();
         return false;
     }
 
@@ -135,5 +137,12 @@ public class MusicService extends Service implements
         songPosn++;
         if(songPosn>=songs.size()) songPosn=0;
         playSong();
+    }
+
+    @Override
+    public void onDestroy() {
+        player.stop();
+        player.release();
+        super.onDestroy();
     }
 }
