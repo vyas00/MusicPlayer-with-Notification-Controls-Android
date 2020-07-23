@@ -14,6 +14,8 @@
         android:layout_height="wrap_content"
         android:textColor="#151414"
         android:textSize="20sp"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:textStyle="bold" />
 
     <TextView
@@ -21,6 +23,8 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:textColor="#474745"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:textSize="18sp" />
 
 </LinearLayout>

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -81,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         return super.onOptionsItemSelected(item);
     }
 
+
+
     public void songPicked(View view){
         musicService.ControllerShow(controller);
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
@@ -122,6 +125,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                     (android.provider.MediaStore.Audio.Media._ID);
             int artistColumn = musicCursor.getColumnIndex
                     (android.provider.MediaStore.Audio.Media.ARTIST);
+
+
             do {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
@@ -155,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 setController();
                 paused=false;
                if(controller!=null) musicService.ControllerShow(controller);
+
             }
     }
     @Override
