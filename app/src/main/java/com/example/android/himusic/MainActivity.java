@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getExtras().getString("actionname");
@@ -239,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     }
 
+
     private void playNext(){
         musicService.playNext();
         if(playbackPaused){
@@ -246,7 +246,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             playbackPaused=false;
         }
         controller.show(0);
+        musicService.songPlaying=true;
+        musicService.startNotification();
     }
+
 
     private void playPrev(){
         musicService.playPrev();
@@ -255,9 +258,11 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             playbackPaused=false;
         }
         controller.show(0);
+        musicService.songPlaying=true;
+        musicService.startNotification();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
     @Override
     public void start() {
         musicService.songPlaying=true;
@@ -265,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         musicService.go();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
     @Override
     public void pause() {
         musicService.songPlaying=false;

@@ -126,8 +126,6 @@ private NotificationManager notificationManager;
     }
 
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void startNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
