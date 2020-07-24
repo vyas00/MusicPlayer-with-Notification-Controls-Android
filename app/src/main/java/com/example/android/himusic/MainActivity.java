@@ -61,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
         setController();
 
-
-
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -294,6 +292,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     @Override
     public void onBackPressed() {
-        moveTaskToBack(true);
+        // I cannot call addToBackstack method here as there is no previous activity here
+        //moveTaskToBack makes the current activity moves to the background without being destroyed
+        // I implemented this so that when the user presses back button the current activity is not destroyed
+        // Also I read the official android documentation page which says that "Move the task containing this activity to the back of the activity stack.....
+        // ..The activity's order within the task is unchanged"
+            moveTaskToBack(true);
     }
+
 }

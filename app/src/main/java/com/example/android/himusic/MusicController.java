@@ -15,6 +15,7 @@ public class MusicController extends MediaController {
     }
 
     public void hide(){}
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();

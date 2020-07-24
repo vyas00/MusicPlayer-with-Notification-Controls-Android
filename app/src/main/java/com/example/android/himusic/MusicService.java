@@ -196,10 +196,6 @@ public class MusicService extends Service implements
         if(songPosition >=songs.size()) songPosition =0;
         playSong();
     }
-    public  String getSongTitle()
-    {
-        return  songTitle;
-    }
 
 
     @Override
@@ -209,4 +205,5 @@ public class MusicService extends Service implements
         stopForeground(true);
         super.onDestroy();
     }
+
 }
