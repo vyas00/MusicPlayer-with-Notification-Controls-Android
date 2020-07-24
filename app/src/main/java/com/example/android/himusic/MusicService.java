@@ -8,6 +8,8 @@ import android.app.Service;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -16,6 +18,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -29,14 +32,24 @@ public class MusicService extends Service implements
 
     private final String TAG="MusicService";
 
+    public static final String ACTION_PRE="actionprevious";
+    public static final String ACTION_PLAY="actionplay";
+    public static final String ACTION_NEXT="actionpause";
+    public boolean songPlaying=true;
+
     private MediaPlayer player;
     private ArrayList<Song> songs;
     private int songPosition;
     private String songTitle;
     private  String songArtist;
     private final IBinder musicBind = new MusicBinder();
-
+private NotificationManager notificationManager;
     private  MusicController controller;
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_NOT_STICKY;
+    }
 
     @Override
     public void onCreate() {
@@ -44,6 +57,8 @@ public class MusicService extends Service implements
         songPosition =0;
         player=new MediaPlayer();
         initMusicPlayer();
+
+
     }
 
     public void setList(ArrayList<Song> theSongs){
@@ -92,6 +107,7 @@ public class MusicService extends Service implements
         return false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
@@ -99,11 +115,7 @@ public class MusicService extends Service implements
         ControllerShow(controller);
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            startNotification();
-        else
-            startForeground(1, new Notification());
+        startNotification();
 
     }
 
@@ -114,28 +126,68 @@ public class MusicService extends Service implements
     }
 
 
+
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void startNotification(){
-        String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
+    public void startNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
         String channelName = "My Notification Service";
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.logo_music);
+        PendingIntent pendingIntentPrevious;
+        int drw_previous;
+        Intent intentPrevious = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_PRE);
+        pendingIntentPrevious = PendingIntent.getBroadcast(getApplicationContext(), 0, intentPrevious, PendingIntent.FLAG_UPDATE_CURRENT);
+        drw_previous = R.drawable.icon_previous;
+
+
+        PendingIntent pendingIntentPlay;
+        int drw_play;
+        Intent intentPlay = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_PLAY);
+        pendingIntentPlay = PendingIntent.getBroadcast(getApplicationContext(), 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT);
+        if (songPlaying) {
+            drw_play = R.drawable.icon_pause;
+        } else {
+            drw_play = R.drawable.icon_play;
+        }
+
+
+        PendingIntent pendingIntentNext;
+        int drw_next;
+        Intent intentNext = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_NEXT);
+        pendingIntentNext = PendingIntent.getBroadcast(getApplicationContext(), 0, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
+        drw_next = R.drawable.icon_next;
+
+        MediaSessionCompat mediaSession = new MediaSessionCompat(getApplicationContext(), TAG);
+        MediaSessionCompat.Token token = mediaSession.getSessionToken();
+
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        assert manager != null;
-        manager.createNotificationChannel(chan);
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert notificationManager != null;
+        notificationManager.createNotificationChannel(chan);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.icon_play)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(songTitle)
                 .setOngoing(true)
+                .setLargeIcon(largeIcon)
+                .addAction(drw_previous, "Previous", pendingIntentPrevious)
+                .addAction(drw_play, "Play", pendingIntentPlay)
+                .addAction(drw_next, "Next", pendingIntentNext)
                 .setTicker(songTitle)
-                .setContentText("Artist: "+songArtist)
+                .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                        .setMediaSession(token))
+                .setContentText("Artist: " + songArtist)
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
+
                 .build();
         startForeground(2, notification);
+    }
+        else{ startForeground(1, new Notification());}
     }
 
     public void setSong(int songIndex){
@@ -198,11 +250,16 @@ public class MusicService extends Service implements
     }
 
 
+
+
     @Override
     public void onDestroy() {
         player.stop();
         player.release();
         stopForeground(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            notificationManager.cancelAll();
+        }
         super.onDestroy();
     }
 

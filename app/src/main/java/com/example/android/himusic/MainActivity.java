@@ -1,12 +1,15 @@
 package com.example.android.himusic;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
@@ -60,8 +63,32 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
 
         setController();
+        registerReceiver(broadcastReceiver, new IntentFilter("TRACKS"));
 
     }
+
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getExtras().getString("actionname");
+
+
+            if(action.equals(musicService.ACTION_PRE)){
+                    playPrev();}
+                else if(action.equals(musicService.ACTION_PLAY)){
+                    if (isPlaying()){
+                        pause();
+                    } else {
+                        start();
+                    }
+                    }
+                else if(action.equals(musicService.ACTION_NEXT)){
+                    playNext(); }
+            }
+        };
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -188,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         if (musicBound) unbindService(musicConnection);
         stopService(playIntent);
         musicService =null;
+        unregisterReceiver(broadcastReceiver);
         super.onDestroy();
     }
 
@@ -229,13 +257,19 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         controller.show(0);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void start() {
+        musicService.songPlaying=true;
+        musicService.startNotification();
         musicService.go();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void pause() {
+        musicService.songPlaying=false;
+        musicService.startNotification();
         musicService.pausePlayer();
     }
 
