@@ -73,9 +73,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
    private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-               int batteryLevel=intent.getExtras().getInt("battery_low");
+               String batteryLevel=intent.getExtras().getString("battery_low");
                 pause();
-                Toast.makeText(context, "Player paused as battery level is: "+batteryLevel, Toast.LENGTH_LONG).show();
+                Toast.makeText(context,batteryLevel, Toast.LENGTH_LONG).show();
+            Toast.makeText(context,"You can resume the song from the notification pannel! ", Toast.LENGTH_LONG).show();
         }
     };
 
