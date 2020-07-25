@@ -1,8 +1,8 @@
 package com.example.android.himusic;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -13,7 +13,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.MediaController;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     private final String TAG="MainActivity";
 
-
     private ArrayList<Song> songList;
     private ListView songView;
     private MusicService musicService;
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private boolean musicBound=false;
     private static MusicController controller;
     private boolean paused=false, playbackPaused=false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +64,23 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
 
         setController();
-        registerReceiver(broadcastReceiver, new IntentFilter("TRACKS"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
 
     }
 
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+
+   private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+               int batteryLevel=intent.getExtras().getInt("battery_low");
+                pause();
+                Toast.makeText(context, "Player paused as battery level is: "+batteryLevel, Toast.LENGTH_LONG).show();
+        }
+    };
+
+
+   private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getExtras().getString("actionname");
@@ -111,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     public void songPicked(View view){
         musicService.ControllerShow(controller);
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
+        musicService.songPlaying=true;
         musicService.playSong();
         if(playbackPaused){
             setController();
@@ -169,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         super.onStart();
         Log.d(TAG, "onStart invoked");
 
+
         if(playIntent==null){
             playIntent = new Intent(this, MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
@@ -214,7 +229,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         if (musicBound) unbindService(musicConnection);
         stopService(playIntent);
         musicService =null;
-        unregisterReceiver(broadcastReceiver);
+        if(broadcastNotificationReceiver!=null)unregisterReceiver(broadcastNotificationReceiver);
+        if(broadcastBatteryReceiver!=null)unregisterReceiver(broadcastBatteryReceiver);
         super.onDestroy();
     }
 
@@ -300,8 +316,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     @Override
     public boolean isPlaying() {
         if(musicService!=null && musicBound)
-        return musicService.isPng();
-        return false;
+        {musicService.songPlaying=true;
+            return musicService.isPng();
+        }
+      else  return false;
     }
 
     @Override

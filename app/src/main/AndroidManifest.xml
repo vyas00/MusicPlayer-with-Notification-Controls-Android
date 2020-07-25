@@ -28,7 +28,13 @@
         <service android:name="com.example.android.himusic.MusicService"
             android:enabled="true"
             />
-        <receiver android:name=".NotificationActionService"/>
+<receiver android:name=".MusicNotificationBroadcastReceiver">
+        </receiver>
+        <receiver android:name=".BatteryBroadcastReceiver"  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_LOW"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

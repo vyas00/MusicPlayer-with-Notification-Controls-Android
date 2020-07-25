@@ -21,7 +21,6 @@ import android.os.PowerManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import java.util.ArrayList;
@@ -107,7 +106,6 @@ private NotificationManager notificationManager;
         return false;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
@@ -115,6 +113,7 @@ private NotificationManager notificationManager;
         ControllerShow(controller);
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
         startNotification();
 
     }
@@ -131,16 +130,18 @@ private NotificationManager notificationManager;
             String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
         String channelName = "My Notification Service";
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.logo_music);
+
+
         PendingIntent pendingIntentPrevious;
         int drw_previous;
-        Intent intentPrevious = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_PRE);
+        Intent intentPrevious = new Intent(getApplicationContext(), MusicNotificationBroadcastReceiver.class).setAction(ACTION_PRE);
         pendingIntentPrevious = PendingIntent.getBroadcast(getApplicationContext(), 0, intentPrevious, PendingIntent.FLAG_UPDATE_CURRENT);
         drw_previous = R.drawable.icon_previous;
 
 
         PendingIntent pendingIntentPlay;
         int drw_play;
-        Intent intentPlay = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_PLAY);
+        Intent intentPlay = new Intent(getApplicationContext(), MusicNotificationBroadcastReceiver.class).setAction(ACTION_PLAY);
         pendingIntentPlay = PendingIntent.getBroadcast(getApplicationContext(), 0, intentPlay, PendingIntent.FLAG_UPDATE_CURRENT);
         if (songPlaying) {
             drw_play = R.drawable.icon_pause;
@@ -151,7 +152,7 @@ private NotificationManager notificationManager;
 
         PendingIntent pendingIntentNext;
         int drw_next;
-        Intent intentNext = new Intent(getApplicationContext(), NotificationActionService.class).setAction(ACTION_NEXT);
+        Intent intentNext = new Intent(getApplicationContext(), MusicNotificationBroadcastReceiver.class).setAction(ACTION_NEXT);
         pendingIntentNext = PendingIntent.getBroadcast(getApplicationContext(), 0, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
         drw_next = R.drawable.icon_next;
 
@@ -186,6 +187,11 @@ private NotificationManager notificationManager;
         startForeground(2, notification);
     }
         else{ startForeground(1, new Notification());}
+    }
+
+    public  void notificationBuilder()
+    {
+
     }
 
     public void setSong(int songIndex){
