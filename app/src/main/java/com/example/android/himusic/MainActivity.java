@@ -13,7 +13,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -70,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
 
 
+
    private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             case R.id.action_end:
                 stopService(playIntent);
                 musicService =null;
+                musicBound=false;
                 finish();
                 break;
         }
@@ -225,13 +226,13 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
     @Override
     protected void onDestroy() {
-
         Log.d(TAG,"onDestroy invoked");
-        if (musicBound) unbindService(musicConnection);
-        stopService(playIntent);
+        if (musicBound){ unbindService(musicConnection);}
+        Intent myService = new Intent(MainActivity.this, MusicService.class);
+        stopService(myService);
+        if(broadcastNotificationReceiver!=null){unregisterReceiver(broadcastNotificationReceiver);}
+        if(broadcastBatteryReceiver!=null){unregisterReceiver(broadcastBatteryReceiver);}
         musicService =null;
-        if(broadcastNotificationReceiver!=null)unregisterReceiver(broadcastNotificationReceiver);
-        if(broadcastBatteryReceiver!=null)unregisterReceiver(broadcastBatteryReceiver);
         super.onDestroy();
     }
 

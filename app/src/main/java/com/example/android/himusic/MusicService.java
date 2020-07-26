@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
@@ -47,6 +48,11 @@ private NotificationManager notificationManager;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent.getExtras()!=null && intent.getExtras().getString("bootNotification").equals("BOOT"))
+        {
+            songPosition=2;
+            startNotification();
+        }
         return START_NOT_STICKY;
     }
 
@@ -56,7 +62,7 @@ private NotificationManager notificationManager;
         songPosition =0;
         player=new MediaPlayer();
         initMusicPlayer();
-
+        Log.d(TAG,"service started");
 
     }
 
@@ -189,10 +195,6 @@ private NotificationManager notificationManager;
         else{ startForeground(1, new Notification());}
     }
 
-    public  void notificationBuilder()
-    {
-
-    }
 
     public void setSong(int songIndex){
         songPosition =songIndex;
@@ -255,7 +257,6 @@ private NotificationManager notificationManager;
 
 
 
-
     @Override
     public void onDestroy() {
         player.stop();
@@ -264,6 +265,7 @@ private NotificationManager notificationManager;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             notificationManager.cancelAll();
         }
+        Log.d(TAG,"service destroyed");
         super.onDestroy();
     }
 

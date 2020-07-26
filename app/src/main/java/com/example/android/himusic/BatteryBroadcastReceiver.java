@@ -10,8 +10,16 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 public class BatteryBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent sendIntent=new Intent("BATTERY_LOW");
-        sendIntent.putExtra("battery_low","Music player paused due to low battery!");
-        LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent);
+
+        String action = intent.getAction();
+        if(action != null) {
+            if (action.equals(Intent.ACTION_BATTERY_LOW) ) {
+                Intent sendIntent=new Intent("BATTERY_LOW");
+                sendIntent.putExtra("battery_low","Music player paused due to low battery!");
+                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent); } }
+
+
     }
+
 }
+
