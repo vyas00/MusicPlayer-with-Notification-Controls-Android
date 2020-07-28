@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private boolean musicBound=false;
     private static MusicController controller;
     private boolean paused=false, playbackPaused=false;
+    private  boolean firstTimePlay=false;
 
 
     @Override
@@ -62,10 +64,32 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         songView.setAdapter(songAdapter);
 
 
-        setController();
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
+                 if(isMyMusicServiceRunning(MusicService.class)==false) {
+                     playIntent = new Intent(getApplicationContext(), MusicService.class);
+                     bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+                     startService(playIntent);
+                     LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
+                     LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
+                 }
+        if(isMyMusicServiceRunning(MusicService.class)) {
+            playIntent = new Intent(getApplicationContext(), MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE); }
 
+
+        setController();
+
+
+
+    }
+
+    private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -88,17 +112,39 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
 
             if(action.equals(musicService.ACTION_PRE)){
+                Log.d(TAG, "pre song, notification");
                     playPrev();}
                 else if(action.equals(musicService.ACTION_PLAY)){
                     if (isPlaying()){
+                        Log.d(TAG, "pause song, notification");
                         pause();
+
                     } else {
+                        Log.d(TAG, "play song, notification");
                         start();
                     }
                     }
                 else if(action.equals(musicService.ACTION_NEXT)){
+                Log.d(TAG, "next song, notification");
                     playNext(); }
-            }
+            else if(action.equals(musicService.ACTION_DESTROY_SERVICE)) {
+                if (playIntent != null) stopService(playIntent);
+                    musicService = null;
+                try {
+                    if (broadcastNotificationReceiver != null) {
+                        unregisterReceiver(broadcastNotificationReceiver);
+                    }
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (broadcastBatteryReceiver != null) {
+                        unregisterReceiver(broadcastBatteryReceiver);
+                    }
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }            }
         };
 
 
@@ -124,7 +170,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
 
     public void songPicked(View view){
-        musicService.ControllerShow(controller);
+
+      /*  musicService.ControllerShow(controller);*/
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.songPlaying=true;
         musicService.playSong();
@@ -132,11 +179,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             setController();
             playbackPaused=false;
         }
-        controller.show(0);
+        firstTimePlay=true;
+
     }
 
-    private ServiceConnection musicConnection = new ServiceConnection(){
 
+    private ServiceConnection musicConnection = new ServiceConnection(){
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
@@ -150,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         @Override
         public void onServiceDisconnected(ComponentName name) {
             musicBound = false;
+
         }
     };
 
@@ -182,16 +231,13 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     @Override
     protected void onStart() {
+
         super.onStart();
         Log.d(TAG, "onStart invoked");
-
-
-        if(playIntent==null){
-            playIntent = new Intent(this, MusicService.class);
+        if(isMyMusicServiceRunning(MusicService.class)==false) {
+            playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
-        }
-
+            startService(playIntent); }
     }
         @Override
     protected void onResume() {
@@ -200,10 +246,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             if(paused){
                 setController();
                 paused=false;
-               if(controller!=null) musicService.ControllerShow(controller);
+             /*  if(controller!=null) musicService.ControllerShow(controller);*/
 
             }
-    }
+
+        }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -215,7 +263,16 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     protected void onStop() {
         super.onStop();
         Log.d(TAG,"onStop invoked");
-        controller.hide();
+        if(controller.isShowing()) controller.hide();
+        try {
+            if (broadcastNotificationReceiver != null) {
+                if(musicBound) unbindService(musicConnection);
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+
+
     }
     @Override
     protected void onRestart() {
@@ -227,13 +284,27 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     @Override
     protected void onDestroy() {
         Log.d(TAG,"onDestroy invoked");
-        if (musicBound){ unbindService(musicConnection);}
-        Intent myService = new Intent(MainActivity.this, MusicService.class);
-        stopService(myService);
-        if(broadcastNotificationReceiver!=null){unregisterReceiver(broadcastNotificationReceiver);}
-        if(broadcastBatteryReceiver!=null){unregisterReceiver(broadcastBatteryReceiver);}
-        musicService =null;
         super.onDestroy();
+
+        if(isPlaying()==false && firstTimePlay==false)
+        {
+            if (playIntent != null) stopService(playIntent);
+            musicService = null;
+            try {
+                if (broadcastNotificationReceiver != null) {
+                    unregisterReceiver(broadcastNotificationReceiver);
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (broadcastBatteryReceiver != null) {
+                    unregisterReceiver(broadcastBatteryReceiver);
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void setController(){
@@ -253,7 +324,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         controller.setMediaPlayer(this);
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
-
     }
 
 
@@ -263,7 +333,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             setController();
             playbackPaused=false;
         }
-        controller.show(0);
         musicService.songPlaying=true;
         musicService.startNotification();
     }
@@ -275,7 +344,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             setController();
             playbackPaused=false;
         }
-        controller.show(0);
         musicService.songPlaying=true;
         musicService.startNotification();
     }
@@ -283,17 +351,17 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
     @Override
     public void start() {
+        musicService.go();
         musicService.songPlaying=true;
         musicService.startNotification();
-        musicService.go();
     }
 
 
     @Override
     public void pause() {
         musicService.songPlaying=false;
-        musicService.startNotification();
         musicService.pausePlayer();
+        musicService.startNotification();
     }
 
     @Override
@@ -349,14 +417,14 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         return 0;
     }
 
-    @Override
+/*    @Override
     public void onBackPressed() {
         // I cannot call addToBackstack method here as there is no previous activity here
         //moveTaskToBack makes the current activity moves to the background without being destroyed
         // I implemented this so that when the user presses back button the current activity is not destroyed
         // Also I read the official android documentation page which says that "Move the task containing this activity to the back of the activity stack.....
         // ..The activity's order within the task is unchanged"
-            moveTaskToBack(true);
-    }
+          *//*  moveTaskToBack(true);*//*
+    }*/
 
 }

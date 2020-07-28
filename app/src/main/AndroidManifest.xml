@@ -43,7 +43,7 @@
         </receiver>
 
 
-        <receiver android:name=".BootCompletedBroadcastReceiver" android:exported="true" android:enabled="true">
+        <receiver android:name=".BootCompletedBroadcastReceiver" android:exported="true" android:enabled="true" android:directBootAware="true">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
