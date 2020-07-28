@@ -14,13 +14,13 @@ public class MusicController extends MediaController {
         this.context = c;
     }
 
-    public void hide(){}
+    public void hide(){ }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();
         if(keyCode == KeyEvent.KEYCODE_BACK){
-            ((MainActivity) context).onBackPressed();
+            ((MainActivity) context).finish();
             return true;
         }
         return super.dispatchKeyEvent(event);

@@ -40,9 +40,10 @@ public class MusicService extends Service implements
 
     private MediaPlayer player;
     private ArrayList<Song> songs;
-    private int songPosition;
+    private int songPosition=1;
     private String songTitle;
-    private  String songArtist;
+    private   String songArtist;
+    private long  currSong;
     private final IBinder musicBind = new MusicBinder();
 private NotificationManager notificationManager;
 
@@ -50,7 +51,10 @@ private NotificationManager notificationManager;
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getExtras()!=null && intent.getExtras().getString("bootNotification").equals("BOOT"))
         {
-            songPosition=2;
+            songArtist=MusicSharedPref.getArtistName();
+            songTitle=MusicSharedPref.getArtistName();
+            currSong=MusicSharedPref.getLongId();
+            songPlaying=false;
             startNotification();
         }
         return super.onStartCommand(intent, flags, startId);
@@ -59,11 +63,11 @@ private NotificationManager notificationManager;
     @Override
     public void onCreate() {
         super.onCreate();
-        songPosition =0;
+        songPosition =1;
         player=new MediaPlayer();
         initMusicPlayer();
         Log.d(TAG,"service started");
-
+         MusicSharedPref.setContext(getApplicationContext());
     }
 
     public void setList(ArrayList<Song> theSongs){
@@ -123,11 +127,11 @@ private NotificationManager notificationManager;
 
     }
 
-    public void ControllerShow(MusicController controller)
+/*    public void ControllerShow(MusicController controller)
     {
-       /* this.controller=controller;
-        if(this.controller!=null) this.controller.show(0);*/
-    }
+       *//* this.controller=controller;
+        if(this.controller!=null) this.controller.show(0);*//*
+    }*/
 
     protected  PendingIntent getPendingIntentPrevious(){
         PendingIntent pendingIntentPrevious;
@@ -224,11 +228,13 @@ private NotificationManager notificationManager;
         songTitle=playSong.getTitle();
         songArtist=playSong.getArtist();
 
-        long currSong = playSong.getID();
+         currSong = playSong.getID();
 
-        Uri trackUri = ContentUris.withAppendedId(
-                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                currSong);
+MusicSharedPref.setArtistName(songArtist);
+MusicSharedPref.setSongName(songTitle);
+MusicSharedPref.setLongId(currSong);
+
+        Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
 
         try{
             player.setDataSource(getApplicationContext(), trackUri);
@@ -272,6 +278,7 @@ private NotificationManager notificationManager;
         if(songPosition >=songs.size()) songPosition =0;
         playSong();
     }
+
 
 
 

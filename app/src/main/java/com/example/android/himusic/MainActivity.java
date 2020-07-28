@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private MusicService musicService;
     private Intent playIntent;
     private boolean musicBound=false;
-    private static MusicController controller;
+    private  MusicController controller;
     private boolean paused=false, playbackPaused=false;
     private  boolean firstTimePlay=false;
 
@@ -70,16 +70,13 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                      startService(playIntent);
                      LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
                      LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
+
                  }
         if(isMyMusicServiceRunning(MusicService.class)) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE); }
 
-
-        setController();
-
-
-
+                setController();
     }
 
     private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
@@ -93,14 +90,12 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
 
 
-
    private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
                String batteryLevel=intent.getExtras().getString("battery_low");
                 pause();
                 Toast.makeText(context,batteryLevel, Toast.LENGTH_LONG).show();
-            Toast.makeText(context,"You can resume the song from the notification pannel! ", Toast.LENGTH_LONG).show();
         }
     };
 
@@ -180,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             playbackPaused=false;
         }
         firstTimePlay=true;
-
+        controller.show();
     }
 
 
@@ -249,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
              /*  if(controller!=null) musicService.ControllerShow(controller);*/
 
             }
-
+      /*      controller.setEnabled(true);*/
         }
 
     @Override
@@ -261,9 +256,10 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
     @Override
     protected void onStop() {
-        super.onStop();
+
         Log.d(TAG,"onStop invoked");
-        if(controller.isShowing()) controller.hide();
+        controller.hide();
+        controller.setEnabled(false);
         try {
             if (broadcastNotificationReceiver != null) {
                 if(musicBound) unbindService(musicConnection);
@@ -271,8 +267,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
-
-
+        super.onStop();
     }
     @Override
     protected void onRestart() {
@@ -354,6 +349,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         musicService.go();
         musicService.songPlaying=true;
         musicService.startNotification();
+        setController();
     }
 
 
@@ -362,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         musicService.songPlaying=false;
         musicService.pausePlayer();
         musicService.startNotification();
+        setController();
     }
 
     @Override
