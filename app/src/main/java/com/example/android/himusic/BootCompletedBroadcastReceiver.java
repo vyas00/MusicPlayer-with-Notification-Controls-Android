@@ -23,8 +23,10 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver {
                 intentToService.putExtra("bootNotification", "BOOT");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(intentToService);
+                    Log.d(TAG, "onReceive: intent sent to service class ");
                 } else {
                     context.startService(intentToService);
+                    Log.d(TAG, "onReceive: intent sent to service class");
                 }
 
             }

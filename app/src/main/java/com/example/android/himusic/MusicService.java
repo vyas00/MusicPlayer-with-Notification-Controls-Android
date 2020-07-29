@@ -43,7 +43,7 @@ public class MusicService extends Service implements
 
     private MediaPlayer player;
     private ArrayList<Song> songs;
-    private int songPosition=1;
+    private int songPosition=0;
     private String songTitle;
     private   String songArtist;
     private long  currSong;
@@ -54,9 +54,12 @@ private NotificationManager notificationManager;
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent.getExtras()!=null && intent.getExtras().getString("bootNotification").equals("BOOT"))
         {
+            Log.d(TAG, "onStartCommand: of service invoked");
             songArtist=MusicSharedPref.getArtistName();
             songTitle=MusicSharedPref.getArtistName();
             currSong=MusicSharedPref.getLongId();
+            ArrayList<Song> notifiSong=new ArrayList<>(); notifiSong.add(new Song(currSong, songTitle,songArtist));
+            setList(notifiSong);
             songPlaying=false;
             startNotification();
         }
@@ -66,7 +69,7 @@ private NotificationManager notificationManager;
     @Override
     public void onCreate() {
         super.onCreate();
-        songPosition =1;
+        songPosition =0;
         player=new MediaPlayer();
         initMusicPlayer();
         Log.d(TAG,"service started");
@@ -218,6 +221,7 @@ private NotificationManager notificationManager;
                 startNotification();}
             else if(action.equals(ACTION_DESTROY_SERVICE)) {
                 onDestroy();
+                Log.d(TAG, "onReceive: destroy from notification called");
             }
            }
 
@@ -279,13 +283,13 @@ private NotificationManager notificationManager;
     public void setSong(int songIndex){
         songPosition =songIndex;
     }
+
     public void playSong(){
         player.reset();
 
         Song playSong = songs.get(songPosition);
         songTitle=playSong.getTitle();
         songArtist=playSong.getArtist();
-
          currSong = playSong.getID();
 
 MusicSharedPref.setArtistName(songArtist);
@@ -343,9 +347,9 @@ MusicSharedPref.setLongId(currSong);
     @Override
     public void onDestroy() {
         Log.d(TAG,"service destroyed");
-    if(broadcastNotificationReceiver!=null)   LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
-        Log.d(TAG, "onDestroy: notification broadcast receiver unregistered");
-       if(broadcastBatteryReceiver!=null)  LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastBatteryReceiver);
+    if(broadcastNotificationReceiver!=null)  LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
+    Log.d(TAG, "onDestroy: notification broadcast receiver unregistered");
+       if(broadcastBatteryReceiver!=null) LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastBatteryReceiver);
         Log.d(TAG, "onDestroy: battery broadcast receiver unregistered");
         player.stop();
         player.release();

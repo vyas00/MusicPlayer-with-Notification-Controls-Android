@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.MediaController;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private  MusicController controller;
     private boolean paused=false, playbackPaused=false;
     private  boolean firstTimePlay=false;
+
 
 
     @Override
@@ -67,10 +69,11 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
                      bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
                      startService(playIntent);
+                     Log.d(TAG, "onCreate: service created in oncreate ");
                      /*LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));*/
                    /*  LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));*/
-
                  }
+                 else{firstTimePlay=true;}
 
 
                 setController();
@@ -153,16 +156,15 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_end:
-                stopService(playIntent);
+/*                stopService(playIntent);
                 musicService =null;
                 musicBound=false;
-                finish();
+                finish();*/
+if(isMyMusicServiceRunning(MusicService.class)) controller.show();
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 
     public void songPicked(View view){
 
@@ -175,8 +177,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             playbackPaused=false;
         }
         firstTimePlay=true;
-        Log.d(TAG, "songPicked: controller show called" + isFinishing());
-        if(!isFinishing())
+        Log.d(TAG, "songPicked: controller show called  " + isFinishing());
         controller.show();
     }
 
@@ -231,9 +232,11 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
         super.onStart();
         Log.d(TAG, "onStart invoked");
-        if(musicBound==false) {
+        if(musicBound==false && isMyMusicServiceRunning(MusicService.class)) {
+            playIntent = new Intent(getApplicationContext(), MusicService.class);
             Log.d(TAG, "onStart: service binded again");
-          if(playIntent!=null)  bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE); }
+            if(playIntent!=null)  bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+           }
 /*        if(isMyMusicServiceRunning(MusicService.class)==false) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
@@ -262,21 +265,24 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
     @Override
     protected void onStop() {
-
         Log.d(TAG,"onStop invoked");
-        controller.hide();
-        controller.setEnabled(false);
+         if(controller.isShowing())controller.hide();
         if(musicBound && musicService!=null) {unbindService(musicConnection); musicBound=false;}
         Log.d(TAG, "onStop: service unbinded here ");
         super.onStop();
     }
+
     @Override
     protected void onRestart() {
         super.onRestart();
         Log.d(TAG,"onRestart invoked");
-
-
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+
     @Override
     protected void onDestroy() {
         Log.d(TAG,"onDestroy invoked");
