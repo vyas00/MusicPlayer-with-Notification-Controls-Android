@@ -72,6 +72,7 @@ private NotificationManager notificationManager;
         Log.d(TAG,"service started");
          MusicSharedPref.setContext(getApplicationContext());
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
     }
 
     public void setList(ArrayList<Song> theSongs){
@@ -167,6 +168,20 @@ private NotificationManager notificationManager;
         pendingIntentDelete = PendingIntent.getBroadcast(getApplicationContext(), 0, intentDelete, PendingIntent.FLAG_UPDATE_CURRENT);
         return  pendingIntentDelete;
     }
+
+
+    private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String batteryLevel=intent.getExtras().getString("battery_low");
+         /*   pausePlayer();*/
+            songPlaying=false;
+            pausePlayer();
+            startNotification();
+            Toast.makeText(context,batteryLevel, Toast.LENGTH_LONG).show();
+        }
+    };
+
     private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -201,7 +216,11 @@ private NotificationManager notificationManager;
                 playNext();
                 songPlaying=true;
                 startNotification();}
+            else if(action.equals(ACTION_DESTROY_SERVICE)) {
+                onDestroy();
+            }
            }
+
     };
 
     public void startNotification() {
@@ -324,7 +343,10 @@ MusicSharedPref.setLongId(currSong);
     @Override
     public void onDestroy() {
         Log.d(TAG,"service destroyed");
-        LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
+    if(broadcastNotificationReceiver!=null)   LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
+        Log.d(TAG, "onDestroy: notification broadcast receiver unregistered");
+       if(broadcastBatteryReceiver!=null)  LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastBatteryReceiver);
+        Log.d(TAG, "onDestroy: battery broadcast receiver unregistered");
         player.stop();
         player.release();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager!=null){

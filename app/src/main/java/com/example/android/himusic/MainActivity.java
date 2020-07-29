@@ -63,18 +63,15 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         SongAdapter songAdapter = new SongAdapter(this, songList);
         songView.setAdapter(songAdapter);
 
-
                  if(isMyMusicServiceRunning(MusicService.class)==false) {
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
                      bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
                      startService(playIntent);
                      /*LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));*/
-                     LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
+                   /*  LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));*/
 
                  }
-        if(isMyMusicServiceRunning(MusicService.class)) {
-            playIntent = new Intent(getApplicationContext(), MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE); }
+
 
                 setController();
     }
@@ -90,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     }
 
 
-   private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
+  /* private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
                String batteryLevel=intent.getExtras().getString("battery_low");
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 Toast.makeText(context,batteryLevel, Toast.LENGTH_LONG).show();
         }
     };
-
+*/
 
 /*
    private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
@@ -234,11 +231,15 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
         super.onStart();
         Log.d(TAG, "onStart invoked");
-        if(isMyMusicServiceRunning(MusicService.class)==false) {
+        if(musicBound==false) {
+            Log.d(TAG, "onStart: service binded again");
+          if(playIntent!=null)  bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE); }
+/*        if(isMyMusicServiceRunning(MusicService.class)==false) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent); }
+            startService(playIntent); }*/
     }
+
         @Override
     protected void onResume() {
         super.onResume();
@@ -265,8 +266,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         Log.d(TAG,"onStop invoked");
         controller.hide();
         controller.setEnabled(false);
-        if(musicBound) unbindService(musicConnection);
-
+        if(musicBound && musicService!=null) {unbindService(musicConnection); musicBound=false;}
+        Log.d(TAG, "onStop: service unbinded here ");
         super.onStop();
     }
     @Override
@@ -284,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         if(isPlaying()==false && firstTimePlay==false)
         {
             if (playIntent != null) stopService(playIntent);
-            musicService = null;
+                 musicService = null;
 /*            try {
                 if (broadcastNotificationReceiver != null) {
                     LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastNotificationReceiver);
@@ -292,13 +293,13 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }*/
-            try {
+/*            try {
                 if (broadcastBatteryReceiver != null) {
-                    LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastBatteryReceiver);
+
                 }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
-            }
+            }*/
         }
     }
 
