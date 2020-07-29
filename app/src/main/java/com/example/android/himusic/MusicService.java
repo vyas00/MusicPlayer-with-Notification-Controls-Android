@@ -5,9 +5,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -23,6 +25,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 
@@ -68,6 +71,7 @@ private NotificationManager notificationManager;
         initMusicPlayer();
         Log.d(TAG,"service started");
          MusicSharedPref.setContext(getApplicationContext());
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
     }
 
     public void setList(ArrayList<Song> theSongs){
@@ -163,7 +167,42 @@ private NotificationManager notificationManager;
         pendingIntentDelete = PendingIntent.getBroadcast(getApplicationContext(), 0, intentDelete, PendingIntent.FLAG_UPDATE_CURRENT);
         return  pendingIntentDelete;
     }
+    private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getExtras().getString("actionname");
 
+
+            if(action.equals(ACTION_PRE)){
+                Log.d(TAG, "pre song, notification");
+               /* playPrev();*/
+                playPrev();
+                songPlaying=true;
+                startNotification();
+            }
+            else if(action.equals(ACTION_PLAY)){
+                if (isPng()){
+                    Log.d(TAG, "pause song, notification");
+                 /*   pausePlayer();*/
+                    songPlaying=false;
+                    pausePlayer();
+                    startNotification();
+                } else {
+                   /* start();*/
+                    go();
+                    songPlaying=true;
+                    startNotification();
+                    Log.d(TAG, "play song, notification");
+                }
+            }
+            else if(action.equals(ACTION_NEXT)){
+                Log.d(TAG, "next song, notification");
+               /* playNext();*/
+                playNext();
+                songPlaying=true;
+                startNotification();}
+           }
+    };
 
     public void startNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -285,6 +324,7 @@ MusicSharedPref.setLongId(currSong);
     @Override
     public void onDestroy() {
         Log.d(TAG,"service destroyed");
+        LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
         player.stop();
         player.release();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager!=null){

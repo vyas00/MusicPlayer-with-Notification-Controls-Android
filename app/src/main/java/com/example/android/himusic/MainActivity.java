@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
                      bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
                      startService(playIntent);
-                     LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
+                     /*LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));*/
                      LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
 
                  }
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     };
 
 
+/*
    private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -115,14 +116,15 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                         pause();
 
                     } else {
-                        Log.d(TAG, "play song, notification");
                         start();
+                        Log.d(TAG, "play song, notification");
                     }
                     }
                 else if(action.equals(musicService.ACTION_NEXT)){
                 Log.d(TAG, "next song, notification");
                     playNext(); }
             else if(action.equals(musicService.ACTION_DESTROY_SERVICE)) {
+                Log.d(TAG, "onReceive: notification destroy");
                 if (playIntent != null) stopService(playIntent);
                     musicService = null;
                 try {
@@ -141,6 +143,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 }
             }            }
         };
+*/
 
 
     @Override
@@ -175,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             playbackPaused=false;
         }
         firstTimePlay=true;
+        Log.d(TAG, "songPicked: controller show called" + isFinishing());
+        if(!isFinishing())
         controller.show();
     }
 
@@ -260,13 +265,8 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         Log.d(TAG,"onStop invoked");
         controller.hide();
         controller.setEnabled(false);
-        try {
-            if (broadcastNotificationReceiver != null) {
-                if(musicBound) unbindService(musicConnection);
-            }
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
+        if(musicBound) unbindService(musicConnection);
+
         super.onStop();
     }
     @Override
@@ -285,16 +285,16 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         {
             if (playIntent != null) stopService(playIntent);
             musicService = null;
-            try {
+/*            try {
                 if (broadcastNotificationReceiver != null) {
-                    unregisterReceiver(broadcastNotificationReceiver);
+                    LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastNotificationReceiver);
                 }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
-            }
+            }*/
             try {
                 if (broadcastBatteryReceiver != null) {
-                    unregisterReceiver(broadcastBatteryReceiver);
+                    LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastBatteryReceiver);
                 }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
@@ -320,7 +320,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
     }
-
 
     private void playNext(){
         musicService.playNext();
