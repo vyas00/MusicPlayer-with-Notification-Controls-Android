@@ -52,16 +52,31 @@ private NotificationManager notificationManager;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(intent.getExtras()!=null && intent.getExtras().getString("bootNotification").equals("BOOT"))
-        {
-            Log.d(TAG, "onStartCommand: of service invoked");
-            songArtist=MusicSharedPref.getArtistName();
-            songTitle=MusicSharedPref.getArtistName();
-            currSong=MusicSharedPref.getLongId();
-            ArrayList<Song> notifiSong=new ArrayList<>(); notifiSong.add(new Song(currSong, songTitle,songArtist));
-            setList(notifiSong);
-            songPlaying=false;
-            startNotification();
+        if(intent.getExtras()!=null) {
+            if (intent.getExtras().getString("bootNotification")!=null && intent.getExtras().getString("bootNotification").equals("BOOT")) {
+                Log.d(TAG, "onStartCommand: of service invoked for BOOT receiver ");
+                songArtist = MusicSharedPref.getArtistName();
+                songTitle = MusicSharedPref.getArtistName();
+                currSong = MusicSharedPref.getLongId();
+                ArrayList<Song> notifiSong = new ArrayList<>();
+                notifiSong.add(new Song(currSong, songTitle, songArtist));
+                setList(notifiSong);
+                songPlaying = false;
+                startNotification();
+            }
+           else if (intent.getExtras().getString("song_order")!=null &&  intent.getExtras().getString("song_order").equals("ORDER")) {
+                Log.d(TAG, "onStartCommand: of service invoked for SongScheduler receiver");
+                songArtist = MusicSharedPref.getScheduleArtistName();
+                songTitle = MusicSharedPref.getScheduleSongName();
+                currSong = MusicSharedPref.getScheduleLongId();
+                ArrayList<Song> notifiSong = new ArrayList<>();
+                notifiSong.add(new Song(currSong, songTitle, songArtist));
+                setList(notifiSong);
+                go();
+                songPlaying = true;
+                startNotification();
+                Toast.makeText(MusicService.this, "Your Scheduled song has been started!", Toast.LENGTH_LONG).show();
+            }
         }
         
         return super.onStartCommand(intent, flags, startId);
@@ -187,6 +202,8 @@ private NotificationManager notificationManager;
         }
     };
 
+
+
     private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -222,7 +239,7 @@ private NotificationManager notificationManager;
                 songPlaying=true;
                 startNotification();}
             else if(action.equals(ACTION_DESTROY_SERVICE)) {
-                onDestroy();
+                stopSelf();
                 Log.d(TAG, "onReceive: destroy from notification called");
             }
            }
@@ -349,6 +366,7 @@ MusicSharedPref.setLongId(currSong);
     @Override
     public void onDestroy() {
         Log.d(TAG,"service destroyed");
+
     if(broadcastNotificationReceiver!=null)  LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastNotificationReceiver);
     Log.d(TAG, "onDestroy: notification broadcast receiver unregistered");
        if(broadcastBatteryReceiver!=null) LocalBroadcastManager.getInstance(MusicService.this).unregisterReceiver(broadcastBatteryReceiver);

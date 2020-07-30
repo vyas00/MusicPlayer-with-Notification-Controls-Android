@@ -92,9 +92,14 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
                 AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
                 builderSingle.setIcon(R.drawable.logo_music);
-                builderSingle.setTitle("Select One Name:-");
+                builderSingle.setTitle("Select your choice: ");
 
-                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                final Song clickedsong= songList.get(pos);
+                final String songName= clickedsong.getTitle();
+                final String songArtist=clickedsong.getArtist();
+                final long songId=clickedsong.getID();
+
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
                 arrayAdapter.add("Add to PlayList");
 
@@ -118,39 +123,54 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
                         final EditText userInput = (EditText) promptsView.findViewById(R.id.et_time_dialog);
 
-                        alertDialogBuilder
-                                .setCancelable(false)
-                                .setPositiveButton("OK",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog,int id) {
-                                                Log.d(TAG, "user has placed a song order ");
-                                                long timeAtButtonClick= Long.parseLong(userInput.getText().toString());
-                                                Intent intent= new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
-                                                PendingIntent pendingIntent=PendingIntent.getBroadcast(MainActivity.this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+                        if (strName.equals("Schedule this song")) {
+                            alertDialogBuilder
+                                    .setCancelable(false)
+                                    .setPositiveButton("OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
 
-                                                AlarmManager alarmManager= (AlarmManager) getSystemService(ALARM_SERVICE);
+                                                    long timeAtButtonClick = 0;
+                                                    if (userInput.getText().length() != 0) {
+                                                        MusicSharedPref.setScheduleArtistName(songArtist);
+                                                        MusicSharedPref.setScheduleSongName(songName);
+                                                        MusicSharedPref.setScheduleLongId(songId);
 
-                                                long currentTimeinMilliSec= System.currentTimeMillis();
-                                                long additionalTime= timeAtButtonClick*60*1000;
+                                                        timeAtButtonClick = Long.parseLong(userInput.getText().toString());
+                                                        Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
+                                                        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-                                                alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec+additionalTime, pendingIntent);
-                                                Toast.makeText(MainActivity.this,"Your song has been scheduled", Toast.LENGTH_LONG).show();
-                                            }
-                                        })
-                                .setNegativeButton("Cancel",
-                                        new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog,int id) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                        AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
+                                                        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+                                                        long currentTimeinMilliSec = System.currentTimeMillis();
+                                                        long additionalTime = timeAtButtonClick * 60 * 1000;
+
+                                                        alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec + additionalTime, pendingIntent);
+                                                        Toast.makeText(MainActivity.this, songName + " has been scheduled for playing", Toast.LENGTH_LONG).show();
+                                                        Log.d(TAG, "user has placed a song order ");
+                                                    } else {
+                                                        Toast.makeText(MainActivity.this, "Canot schedule the song, please enter the time and try again ", Toast.LENGTH_LONG).show();
+                                                    }
+                                                }
+                                            })
+                                    .setNegativeButton("Cancel",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    dialog.cancel();
+                                                }
+                                            });
+
+                            AlertDialog alertDialog = alertDialogBuilder.create();
+                            alertDialog.show();
+                        }
+                        else if(strName.equals("Add to PlayList")){
+                            Toast.makeText(MainActivity.this, "yet to be added! ", Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
-                builderSingle.show();
-
-                Log.v("long clicked","pos: " + pos);
-
+                AlertDialog alert = builderSingle.create();
+                alert.show();
+                alert.getWindow().setLayout(900, 760);
                 return true;
             }
         });

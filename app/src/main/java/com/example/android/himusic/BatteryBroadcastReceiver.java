@@ -16,8 +16,8 @@ public class BatteryBroadcastReceiver extends BroadcastReceiver {
             if (action.equals(Intent.ACTION_BATTERY_LOW) ) {
                 Intent sendIntent=new Intent("BATTERY_LOW");
                 sendIntent.putExtra("battery_low","Music player paused due to low battery!");
-                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent); } }
-
+                LocalBroadcastManager.getInstance(context).sendBroadcast(sendIntent); }
+        }
 
     }
 
