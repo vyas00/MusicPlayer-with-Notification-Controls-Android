@@ -63,6 +63,7 @@ private NotificationManager notificationManager;
             songPlaying=false;
             startNotification();
         }
+        
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -74,6 +75,7 @@ private NotificationManager notificationManager;
         initMusicPlayer();
         Log.d(TAG,"service started");
          MusicSharedPref.setContext(getApplicationContext());
+
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
     }

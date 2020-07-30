@@ -22,13 +22,11 @@ public class SongAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-
         return songs.size();
     }
 
     @Override
     public Object getItem(int arg0) {
-
         return null;
     }
 
@@ -43,8 +41,8 @@ public class SongAdapter extends BaseAdapter {
 
         LinearLayout songLay = (LinearLayout) songInflate.inflate(R.layout.song, parent, false);
 
-        TextView songView = (TextView)songLay.findViewById(R.id.song_title);
-        TextView artistView = (TextView)songLay.findViewById(R.id.song_artist);
+        TextView songView = (TextView)songLay.findViewById(R.id.tv_song_title);
+        TextView artistView = (TextView)songLay.findViewById(R.id.tv_song_artist);
 
         Song currSong = songs.get(position);
 
@@ -53,6 +51,8 @@ public class SongAdapter extends BaseAdapter {
 
         songLay.setTag(position);
         return songLay;
+
     }
+
 
 }

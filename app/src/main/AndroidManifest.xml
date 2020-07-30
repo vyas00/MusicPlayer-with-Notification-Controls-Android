@@ -35,6 +35,9 @@
 <receiver android:name=".MusicNotificationBroadcastReceiver">
         </receiver>
 
+        <receiver android:name=".SongSchedulerBroadcastReceiver">
+        </receiver>
+
 
         <receiver android:name=".BatteryBroadcastReceiver"  android:exported="true" android:enabled="true">
             <intent-filter>

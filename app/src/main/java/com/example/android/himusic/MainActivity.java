@@ -1,14 +1,18 @@
 package com.example.android.himusic;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -17,11 +21,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.Toast;
@@ -77,6 +86,76 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
 
 
                 setController();
+
+        songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
+                AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+                builderSingle.setIcon(R.drawable.logo_music);
+                builderSingle.setTitle("Select One Name:-");
+
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+                arrayAdapter.add("Schedule this song");
+                arrayAdapter.add("Add to PlayList");
+
+                builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String strName = arrayAdapter.getItem(which);
+                        LayoutInflater li = LayoutInflater.from(MainActivity.this);
+                        View promptsView = li.inflate(R.layout.time_dialogbox, null);
+
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                        alertDialogBuilder.setView(promptsView);
+
+                        final EditText userInput = (EditText) promptsView.findViewById(R.id.et_time_dialog);
+
+                        alertDialogBuilder
+                                .setCancelable(false)
+                                .setPositiveButton("OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog,int id) {
+                                                Log.d(TAG, "user has placed a song order ");
+                                                long timeAtButtonClick= Long.parseLong(userInput.getText().toString());
+                                                Intent intent= new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
+                                                PendingIntent pendingIntent=PendingIntent.getBroadcast(MainActivity.this,0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+                                                AlarmManager alarmManager= (AlarmManager) getSystemService(ALARM_SERVICE);
+
+                                                long currentTimeinMilliSec= System.currentTimeMillis();
+                                                long additionalTime= timeAtButtonClick*60*1000;
+
+                                                alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec+additionalTime, pendingIntent);
+                                                Toast.makeText(MainActivity.this,"Your song has been scheduled", Toast.LENGTH_LONG).show();
+                                            }
+                                        })
+                                .setNegativeButton("Cancel",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog,int id) {
+                                                dialog.cancel();
+                                            }
+                                        });
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                    }
+                });
+                builderSingle.show();
+
+                Log.v("long clicked","pos: " + pos);
+
+                return true;
+            }
+        });
+
+
     }
 
     private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
@@ -278,10 +357,12 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();
         Log.d(TAG,"onRestart invoked");
     }
 
+/*
     @Override
     public void onBackPressed() {
         finish();
     }
+*/
 
     @Override
     protected void onDestroy() {
