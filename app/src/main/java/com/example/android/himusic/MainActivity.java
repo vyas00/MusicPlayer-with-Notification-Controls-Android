@@ -19,6 +19,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 final String songName= clickedsong.getTitle();
                 final String songArtist=clickedsong.getArtist();
                 final long songId=clickedsong.getID();
+                final String imagepath=clickedsong.getData();
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
@@ -165,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                                                         MusicSharedPref.setScheduleArtistName(songArtist);
                                                         MusicSharedPref.setScheduleSongName(songName);
                                                         MusicSharedPref.setScheduleLongId(songId);
+                                                        MusicSharedPref.setScheduleImagePath(imagepath);
 
                                                         timeAtButtonClick = Long.parseLong(userInput.getText().toString());
                                                         Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
@@ -337,19 +340,16 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
 
         if(musicCursor!=null && musicCursor.moveToFirst()){
-            int titleColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.TITLE);
-            int idColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media._ID);
-            int artistColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.ARTIST);
-
-
+            int titleColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
+            int idColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID);
+            int artistColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.ARTIST);
+            int dataColumn=musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
             do {
                 long thisId = musicCursor.getLong(idColumn);
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
-                songList.add(new Song(thisId, thisTitle, thisArtist));
+                String thisData=musicCursor.getString(dataColumn);
+                songList.add(new Song(thisId, thisTitle, thisArtist,thisData));
             }
             while (musicCursor.moveToNext());
         }

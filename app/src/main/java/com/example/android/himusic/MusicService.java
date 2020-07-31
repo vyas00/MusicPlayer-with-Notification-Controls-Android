@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -46,6 +47,7 @@ public class MusicService extends Service implements
     private int songPosition=0;
     private String songTitle;
     private   String songArtist;
+    private  String songImagePath;
     private long  currSong;
     private final IBinder musicBind = new MusicBinder();
 private NotificationManager notificationManager;
@@ -56,10 +58,11 @@ private NotificationManager notificationManager;
             if (intent.getExtras().getString("bootNotification")!=null && intent.getExtras().getString("bootNotification").equals("BOOT")) {
                 Log.d(TAG, "onStartCommand: of service invoked for BOOT receiver ");
                 songArtist = MusicSharedPref.getArtistName();
-                songTitle = MusicSharedPref.getArtistName();
+                songTitle = MusicSharedPref.getSongName();
                 currSong = MusicSharedPref.getLongId();
+                songImagePath=MusicSharedPref.getImagePath();
                 ArrayList<Song> notifiSong = new ArrayList<>();
-                notifiSong.add(new Song(currSong, songTitle, songArtist));
+                notifiSong.add(new Song(currSong, songTitle, songArtist,songImagePath));
                 setList(notifiSong);
                 songPlaying = false;
                 startNotification();
@@ -69,8 +72,9 @@ private NotificationManager notificationManager;
                 songArtist = MusicSharedPref.getScheduleArtistName();
                 songTitle = MusicSharedPref.getScheduleSongName();
                 currSong = MusicSharedPref.getScheduleLongId();
+                songImagePath=MusicSharedPref.getScheduleImagePath();
                 ArrayList<Song> notifiSong = new ArrayList<>();
-                notifiSong.add(new Song(currSong, songTitle, songArtist));
+                notifiSong.add(new Song(currSong, songTitle, songArtist,songImagePath));
                 setList(notifiSong);
                 go();
                 songPlaying = true;
@@ -251,7 +255,10 @@ private NotificationManager notificationManager;
 
             String NOTIFICATION_CHANNEL_ID = "com.example.HiMusic";
            String channelName = "My Notification Service";
-           Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.logo_music);
+
+           Bitmap largeIcon=getAlbumImage(songImagePath);
+           if(largeIcon==null) {largeIcon=BitmapFactory.decodeResource(getResources(), R.drawable.logo_music);}
+
 
         int drw_previous;
         drw_previous = R.drawable.icon_previous;
@@ -297,7 +304,13 @@ private NotificationManager notificationManager;
         else{ startForeground(1, new Notification());}
 
     }
-
+    private Bitmap getAlbumImage(String path) {
+        android.media.MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+        mmr.setDataSource(path);
+        byte[] data = mmr.getEmbeddedPicture();
+        if (data != null) return BitmapFactory.decodeByteArray(data, 0, data.length);
+        return null;
+    }
 
     public void setSong(int songIndex){
         songPosition =songIndex;
@@ -310,10 +323,12 @@ private NotificationManager notificationManager;
         songTitle=playSong.getTitle();
         songArtist=playSong.getArtist();
          currSong = playSong.getID();
+         songImagePath =playSong.getData();
 
 MusicSharedPref.setArtistName(songArtist);
 MusicSharedPref.setSongName(songTitle);
 MusicSharedPref.setLongId(currSong);
+MusicSharedPref.setImagePath(songImagePath);
 
         Uri trackUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
 
