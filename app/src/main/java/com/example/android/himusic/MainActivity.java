@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_end:
+            case R.id.action_controller:
 /*                stopService(playIntent);
                 musicService =null;
                 musicBound=false;

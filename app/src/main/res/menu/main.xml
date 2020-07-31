@@ -2,13 +2,14 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-<item
-  android:id="@+id/action_end"
-     android:orderInCategory="2"
-    android:visible="true"
-    android:icon="@drawable/ic_controller"
-    app:showAsAction="always"
-    android:title="End" />
+    <item
+        android:id="@+id/action_controller"
+        android:enabled="true"
+        android:icon="@drawable/ic_controller"
+        android:orderInCategory="2"
+        android:title="End"
+        android:visible="true"
+        app:showAsAction="always" />
 
 
 </menu>
