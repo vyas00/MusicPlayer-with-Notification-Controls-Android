@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Hi Music</string>
+    <string name="Open">Hi Music</string>
+    <string name="Close">Hi Music</string>
 </resources>
