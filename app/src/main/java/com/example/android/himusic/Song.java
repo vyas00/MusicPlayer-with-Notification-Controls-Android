@@ -22,4 +22,8 @@ private String data;
     public String getArtist(){return artist;}
     public String getData(){return data;}
 
+    public void setID(long its_id){this.id=its_id;}
+    public void setTitle(String name){this.title=name;}
+    public void setArtist(String its_artist){this.artist=its_artist;}
+    public void setData(String its_data){this.data=its_data;}
 }

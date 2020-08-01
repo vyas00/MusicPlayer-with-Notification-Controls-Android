@@ -14,20 +14,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
 public class SongAdapter extends BaseAdapter {
+    private final String TAG="SongAdapter";
+    Context context;
 
     private ArrayList<Song> songs;
     private LayoutInflater songInflate;
+    DatabaseHandler db;
 
     public SongAdapter(Context c, ArrayList<Song> theSongs){
+        this.context=c;
         songs=theSongs;
         songInflate =LayoutInflater.from(c);
+        db=new DatabaseHandler(c);
     }
 
     @Override
@@ -54,8 +61,25 @@ public class SongAdapter extends BaseAdapter {
         TextView songView = (TextView)songLay.findViewById(R.id.tv_song_title);
         TextView artistView = (TextView)songLay.findViewById(R.id.tv_song_artist);
         ImageView songImage= (ImageView) songLay.findViewById(R.id.iv_song_image);
+        final CheckBox checkBox= (CheckBox)songLay.findViewById(R.id.cb_playlist);
+        final Song currSong = songs.get(position);
+        if(db.getSong(currSong.getID())!=null) checkBox.setChecked(true);
 
-        Song currSong = songs.get(position);
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(checkBox.isChecked())
+                {
+                    db.addSong(currSong);
+                    Toast.makeText(context, currSong.getTitle()+" added to playlist", Toast.LENGTH_LONG).show();
+                }
+                else{
+                    db.deleteSong(currSong.getID());
+                    Toast.makeText(context, currSong.getTitle()+" removed from playlist", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        });
 
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());

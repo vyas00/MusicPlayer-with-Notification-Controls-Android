@@ -3,10 +3,12 @@
     package="com.example.android.himusic">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
+
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -16,7 +18,9 @@
         android:roundIcon="@drawable/logo_music"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity android:name=".PlayListActivity"></activity>
+        <activity
+            android:name=".MainActivity"
             android:launchMode="singleTop"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -26,35 +30,32 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".MusicService"
+            android:enabled="true"></service>
 
-        <service android:name="com.example.android.himusic.MusicService"
-            android:enabled="true">
-    </service>
-
-
-<receiver android:name=".MusicNotificationBroadcastReceiver">
-        </receiver>
-
-        <receiver android:name=".SongSchedulerBroadcastReceiver">
-        </receiver>
-
-
-        <receiver android:name=".BatteryBroadcastReceiver"  android:exported="true" android:enabled="true">
+        <receiver android:name=".MusicNotificationBroadcastReceiver"></receiver>
+        <receiver android:name=".SongSchedulerBroadcastReceiver"></receiver>
+        <receiver
+            android:name=".BatteryBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.BATTERY_LOW"/>
+                <action android:name="android.intent.action.BATTERY_LOW" />
             </intent-filter>
         </receiver>
-
-
-        <receiver android:name=".BootCompletedBroadcastReceiver" android:exported="true" android:enabled="true" android:directBootAware="true">
+        <receiver
+            android:name=".BootCompletedBroadcastReceiver"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
-
-
     </application>
 
 </manifest>

@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
+    DatabaseHandler db;
 
 
 
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.d(TAG,"onCreate invoked");
+        db=new DatabaseHandler(MainActivity.this);
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 switch(id)
                 {
                     case R.id.my_playlist:
-                        Toast.makeText(MainActivity.this, "My Playlist",Toast.LENGTH_SHORT).show();break;
+                        Toast.makeText(MainActivity.this, "My Playlist has " + db.getSongsCount()+" songs",Toast.LENGTH_SHORT).show();break;
                     case R.id.scheduled_dongs:
                         Toast.makeText(MainActivity.this, "Scheduled songs",Toast.LENGTH_SHORT).show();break;
                     default:
