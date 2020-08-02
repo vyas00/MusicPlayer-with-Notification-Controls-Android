@@ -51,6 +51,7 @@
         android:layout_gravity="center"
         android:layout_marginLeft="4dp"
         android:checked="false"
+        android:onClick="checkBoxClicked"
         android:buttonTint="@color/colorPrimaryDark"
         android:scaleX="0.8"
         android:scaleY="0.8"

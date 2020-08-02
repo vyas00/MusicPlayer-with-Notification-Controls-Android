@@ -23,8 +23,6 @@ private final String TAG="PlayListActivity";
     DatabaseHandler db;
     private SongAdapter songAdapter;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,12 +35,15 @@ private final String TAG="PlayListActivity";
            songList=db.getAllSongs();
            songAdapter=new SongAdapter(PlayListActivity.this,songList);
            songListView.setAdapter(songAdapter);
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        songAdapter.notifyDataSetChanged();
     }
+
 
 
 }

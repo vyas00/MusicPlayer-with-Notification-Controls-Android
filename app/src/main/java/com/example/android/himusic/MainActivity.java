@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                         Log.d(TAG, "onNavigationItemSelected: " + db.getSongsCount()+ " songs");
                         if(db.getSongsCount()>0){
                         Intent intent = new Intent(MainActivity.this, PlayListActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent); break;}
                         else {
                             Toast.makeText(MainActivity.this, "No songs in the playlist! Check the Box to add the song",Toast.LENGTH_LONG).show();
@@ -325,7 +324,6 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         Log.d(TAG, "songPicked: controller show called  " + isFinishing());
         controller.show();
     }
-
 
     private ServiceConnection musicConnection = new ServiceConnection(){
         @Override
