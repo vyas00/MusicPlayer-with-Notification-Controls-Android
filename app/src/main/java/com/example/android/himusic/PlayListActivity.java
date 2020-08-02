@@ -22,7 +22,7 @@ private final String TAG="PlayListActivity";
     private ListView songListView;
     DatabaseHandler db;
     private SongAdapter songAdapter;
-
+private int playListSongsCount;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,9 +33,9 @@ private final String TAG="PlayListActivity";
 
 
            songList=db.getAllSongs();
+           playListSongsCount=db.getSongsCount();
            songAdapter=new SongAdapter(PlayListActivity.this,songList);
-           songListView.setAdapter(songAdapter);
-
+        songListView.setAdapter(songAdapter);
     }
 
     @Override
@@ -44,6 +44,12 @@ private final String TAG="PlayListActivity";
         songAdapter.notifyDataSetChanged();
     }
 
+    public void songPicked(View view){
+        if(db.getSongsCount()!=playListSongsCount){
+            songList=db.getAllSongs();
+        songAdapter=new SongAdapter(PlayListActivity.this,songList);
+        songListView.setAdapter(songAdapter);}
 
+    }
 
 }
