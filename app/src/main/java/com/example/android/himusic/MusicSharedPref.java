@@ -8,6 +8,7 @@ public class MusicSharedPref {
     Context context;
     private String TAG="MusicSharedPref";
 
+    private static final String SONGPLAYING_KEY ="songplaying";
     private static final String LONG_ID_KEY="id";
     private static final String SONG_NAME_KEY="name";
     private static final String ARTIST_NAME_KEY="artist";
@@ -38,12 +39,17 @@ public class MusicSharedPref {
 
     }
 
+    public static  void setSongPlaying(boolean playing) {
+        editor.putBoolean(SONGPLAYING_KEY, playing).commit();
+    }
     public static  void setSongName(String name) {
         editor.putString(SONG_NAME_KEY, name).commit();
     }
+
     public static  void setImagePath(String name) {
         editor.putString(IMAGEPATH_KEY, name).commit();
     }
+
     public static  void setArtistName(String artist) {
         editor.putString(ARTIST_NAME_KEY, artist).commit();
     }
@@ -51,6 +57,9 @@ public class MusicSharedPref {
         editor.putLong(LONG_ID_KEY,id).commit();
     }
 
+    public static boolean getSongPlaying() {
+        return eSharedPref.getBoolean(SONGPLAYING_KEY,true);
+    }
     public static String getSongName() {
         return eSharedPref.getString(SONG_NAME_KEY, "");
     }

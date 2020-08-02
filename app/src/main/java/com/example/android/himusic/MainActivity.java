@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG,"onCreate invoked");
+        Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
@@ -374,6 +374,12 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         Log.d(TAG, "onStart invoked");
 
         songAdapter.notifyDataSetChanged();
+
+        if(isMyMusicServiceRunning(MusicService.class)==false){
+            playIntent = new Intent(getApplicationContext(), MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
         if(musicBound==false && isMyMusicServiceRunning(MusicService.class)) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             Log.d(TAG, "onStart: service binded again");

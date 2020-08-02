@@ -92,9 +92,9 @@ private NotificationManager notificationManager;
         songPosition =0;
         player=new MediaPlayer();
         initMusicPlayer();
-        Log.d(TAG,"service started");
-         MusicSharedPref.setContext(getApplicationContext());
 
+         MusicSharedPref.setContext(getApplicationContext());
+        Log.d(TAG,"service started : ");
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
     }
@@ -355,6 +355,9 @@ MusicSharedPref.setImagePath(songImagePath);
 
     public void pausePlayer(){
         player.pause();
+        songPlaying=false;
+        MusicSharedPref.setSongPlaying(songPlaying);
+
     }
 
     public void seek(int posn){
@@ -363,13 +366,20 @@ MusicSharedPref.setImagePath(songImagePath);
 
     public void go(){
         player.start();
+        songPlaying=true;
+        MusicSharedPref.setSongPlaying(songPlaying);
+
     }
     public void playPrev(){
+        songPlaying=true;
+        MusicSharedPref.setSongPlaying(songPlaying);
         songPosition--;
         if(songPosition <0) songPosition =songs.size()-1;
         playSong();
     }
     public void playNext(){
+        songPlaying=true;
+        MusicSharedPref.setSongPlaying(songPlaying);
         songPosition++;
         if(songPosition >=songs.size()) songPosition =0;
         playSong();

@@ -15,12 +15,14 @@ public class BootCompletedBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
+       MusicSharedPref.setContext(context);
         String action = intent.getAction();
         Log.d(TAG,action+" received");
         if(action != null) {
-            if (action.equals(Intent.ACTION_BOOT_COMPLETED) ) {
+            if (action.equals(Intent.ACTION_BOOT_COMPLETED) && MusicSharedPref.getSongPlaying() ) {
                 Intent intentToService = new Intent(context,MusicService.class);
                 intentToService.putExtra("bootNotification", "BOOT");
+                Log.d(TAG, "onReceive: was song playing on rebooting? :"+ MusicSharedPref.getSongPlaying());
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context.startForegroundService(intentToService);
                     Log.d(TAG, "onReceive: intent sent to service class ");
