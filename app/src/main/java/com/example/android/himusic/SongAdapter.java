@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,7 +55,7 @@ public class SongAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
 
         LinearLayout songLay = (LinearLayout) songInflate.inflate(R.layout.song, parent, false);
 
@@ -64,6 +65,16 @@ public class SongAdapter extends BaseAdapter {
         final CheckBox checkBox= (CheckBox)songLay.findViewById(R.id.cb_playlist);
         final Song currSong = songs.get(position);
         if(db.getSong(currSong.getID())!=null) checkBox.setChecked(true);
+
+        songView.setText(currSong.getTitle());
+        artistView.setText(currSong.getArtist());
+        Bitmap bm= getAlbumImage(currSong.getData());
+       if(bm!=null) {songImage.setImageBitmap(getRounded(bm));}
+       else {
+           songImage.setImageResource(R.drawable.logo_music);
+       }
+
+        songLay.setTag(position);
 
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,16 +91,6 @@ public class SongAdapter extends BaseAdapter {
 
             }
         });
-
-        songView.setText(currSong.getTitle());
-        artistView.setText(currSong.getArtist());
-        Bitmap bm= getAlbumImage(currSong.getData());
-       if(bm!=null) {songImage.setImageBitmap(getRounded(bm));}
-       else {
-           songImage.setImageResource(R.drawable.logo_music);
-       }
-
-        songLay.setTag(position);
         return songLay;
 
     }
@@ -99,7 +100,7 @@ public class SongAdapter extends BaseAdapter {
         mmr.setDataSource(path);
         byte[] data = mmr.getEmbeddedPicture();
         if (data != null) return BitmapFactory.decodeByteArray(data, 0, data.length);
-        return null;
+      return null;
     }
 
 

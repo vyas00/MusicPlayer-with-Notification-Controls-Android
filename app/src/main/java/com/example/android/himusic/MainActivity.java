@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
+    private SongAdapter songAdapter;
     DatabaseHandler db;
 
 
@@ -82,7 +83,14 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 switch(id)
                 {
                     case R.id.my_playlist:
-                        Toast.makeText(MainActivity.this, "My Playlist has " + db.getSongsCount()+" songs",Toast.LENGTH_SHORT).show();break;
+                        Log.d(TAG, "onNavigationItemSelected: " + db.getSongsCount()+ " songs");
+                        if(db.getSongsCount()>0){
+                        Intent intent = new Intent(MainActivity.this, PlayListActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent); break;}
+                        else {
+                            Toast.makeText(MainActivity.this, "No songs in the playlist! Check the Box to add the song",Toast.LENGTH_LONG).show();
+                            break;}
                     case R.id.scheduled_dongs:
                         Toast.makeText(MainActivity.this, "Scheduled songs",Toast.LENGTH_SHORT).show();break;
                     default:
@@ -104,8 +112,9 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             }
         });
 
-        SongAdapter songAdapter = new SongAdapter(this, songList);
+         songAdapter = new SongAdapter(this, songList);
         songView.setAdapter(songAdapter);
+
 
                  if(isMyMusicServiceRunning(MusicService.class)==false) {
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
@@ -365,6 +374,8 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
 
         super.onStart();
         Log.d(TAG, "onStart invoked");
+
+        songAdapter.notifyDataSetChanged();
         if(musicBound==false && isMyMusicServiceRunning(MusicService.class)) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             Log.d(TAG, "onStart: service binded again");
