@@ -23,16 +23,20 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.MediaController;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 public class MusicService extends Service implements
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
-        MediaPlayer.OnCompletionListener {
+        MediaPlayer.OnCompletionListener, Serializable, MediaController.MediaPlayerControl  {
 
     private final String TAG="MusicService";
 
@@ -43,6 +47,7 @@ public class MusicService extends Service implements
     public boolean songPlaying;
 
     private MediaPlayer player;
+    private  MusicController controller;
     private ArrayList<Song> songs;
     private int songPosition=0;
     private String songTitle;
@@ -101,6 +106,89 @@ private NotificationManager notificationManager;
 
     public void setList(ArrayList<Song> theSongs){
         songs=theSongs;
+    }
+
+    private void setController(ListView songListView){
+        if(controller==null) controller = new MusicController(this);
+
+        controller.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playNext();
+            }
+        }, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playPrev();
+            }
+        });
+        controller.setMediaPlayer(this);
+        controller.setAnchorView(songListView);
+        controller.setEnabled(true);
+    }
+
+    @Override
+    public void start() {
+        go();
+        songPlaying=true;
+        startNotification();
+/*        setController();*/
+    }
+
+    @Override
+    public void pause() {
+        songPlaying=false;
+        pausePlayer();
+        startNotification();
+       /* setController();*/
+    }
+
+    @Override
+    public int getDuration() {
+        if(isPng()) return getDur();
+        else return 0;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        if(isPng()) return getPosn();
+        else return 0;
+    }
+
+    @Override
+    public void seekTo(int pos) {
+seek(pos);
+    }
+
+    @Override
+    public boolean isPlaying() {
+
+        return isPng();
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
     }
 
     public class MusicBinder extends Binder {

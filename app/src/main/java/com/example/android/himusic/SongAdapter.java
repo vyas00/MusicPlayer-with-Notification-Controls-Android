@@ -30,7 +30,6 @@ public class SongAdapter extends BaseAdapter {
     private ArrayList<Song> songs;
     private LayoutInflater songInflate;
     DatabaseHandler db;
-
     public SongAdapter(Context c, ArrayList<Song> theSongs){
         this.context=c;
         songs=theSongs;
@@ -91,6 +90,7 @@ public class SongAdapter extends BaseAdapter {
 
             }
         });
+
         return songLay;
 
     }

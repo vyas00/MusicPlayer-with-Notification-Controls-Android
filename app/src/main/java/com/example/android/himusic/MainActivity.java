@@ -5,6 +5,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.viewpager.widget.ViewPager;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -14,6 +16,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
@@ -26,37 +29,30 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
-public class MainActivity extends AppCompatActivity implements MediaController.MediaPlayerControl {
+public class MainActivity extends AppCompatActivity  {
 
     private final String TAG="MainActivity";
 
-    private ArrayList<Song> songList;
-    private ListView songView;
-    private MusicService musicService;
+
+    public MusicService musicService;
     private Intent playIntent;
     private boolean musicBound=false;
     private  MusicController controller;
     private boolean paused=false, playbackPaused=false;
     private  boolean firstTimePlay=false;
-
+    DatabaseHandler db;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
-    private SongAdapter songAdapter;
-    DatabaseHandler db;
+
+   private TabLayout tabLayout;
+   private ViewPager viewPager;
 
 
 
@@ -66,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         setContentView(R.layout.activity_main);
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
+
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
@@ -100,128 +97,43 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
             }
         });
 
-        songView=findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
-
-          getSongList();
-
-        Collections.sort(songList, new Comparator<Song>(){
-            public int compare(Song a, Song b){
-                return a.getTitle().compareTo(b.getTitle());
-            }
-        });
-
-         songAdapter = new SongAdapter(this, songList);
-        songView.setAdapter(songAdapter);
-
-
                  if(isMyMusicServiceRunning(MusicService.class)==false) {
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
                      bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
                      startService(playIntent);
                      Log.d(TAG, "onCreate: service created in oncreate ");
-                     /*LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));*/
-                   /*  LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));*/
                  }
                  else{firstTimePlay=true;}
+           /*     setController();*/
 
 
-                setController();
-
-        songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        tabLayout = findViewById(R.id.music_tabLayout);
+        viewPager = findViewById(R.id.viewPager);
+        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_sdcardstorage));
+        tabLayout.addTab(tabLayout.newTab().setText("Playlist").setIcon(R.drawable.ic_playlist_play));
+        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_schedule_songs));
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+        final CategoryAdapter cadapter = new CategoryAdapter(this,getSupportFragmentManager(),
+                tabLayout.getTabCount());
+        viewPager.setAdapter(cadapter);
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) {
-                AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
-                builderSingle.setIcon(R.drawable.logo_music);
-                builderSingle.setTitle("Select your choice: ");
-
-                final Song clickedsong= songList.get(pos);
-                final String songName= clickedsong.getTitle();
-                final String songArtist=clickedsong.getArtist();
-                final long songId=clickedsong.getID();
-                final String imagepath=clickedsong.getData();
-
-                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_item);
-                arrayAdapter.add("Schedule this song");
-                arrayAdapter.add("Add to PlayList");
-
-                builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-                builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String strName = arrayAdapter.getItem(which);
-                        LayoutInflater li = LayoutInflater.from(MainActivity.this);
-                        View promptsView = li.inflate(R.layout.time_dialogbox, null);
-
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-
-                        alertDialogBuilder.setView(promptsView);
-
-                        final EditText userInput = (EditText) promptsView.findViewById(R.id.et_time_dialog);
-
-                        if (strName.equals("Schedule this song")) {
-                            alertDialogBuilder
-                                    .setCancelable(false)
-                                    .setPositiveButton("OK",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-
-                                                    long timeAtButtonClick = 0;
-                                                    if (userInput.getText().length() != 0) {
-                                                        MusicSharedPref.setScheduleArtistName(songArtist);
-                                                        MusicSharedPref.setScheduleSongName(songName);
-                                                        MusicSharedPref.setScheduleLongId(songId);
-                                                        MusicSharedPref.setScheduleImagePath(imagepath);
-
-                                                        timeAtButtonClick = Long.parseLong(userInput.getText().toString());
-                                                        Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
-                                                        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                                                        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
-                                                        long currentTimeinMilliSec = System.currentTimeMillis();
-                                                        long additionalTime = timeAtButtonClick * 60 * 1000;
-
-                                                        alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec + additionalTime, pendingIntent);
-                                                        Toast.makeText(MainActivity.this, songName + " has been scheduled for playing", Toast.LENGTH_LONG).show();
-                                                        Log.d(TAG, "user has placed a song order ");
-                                                    } else {
-                                                        Toast.makeText(MainActivity.this, "Canot schedule the song, please enter the time and try again ", Toast.LENGTH_LONG).show();
-                                                    }
-                                                }
-                                            })
-                                    .setNegativeButton("Cancel",
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    dialog.cancel();
-                                                }
-                                            });
-
-                            AlertDialog alertDialog = alertDialogBuilder.create();
-                            alertDialog.show();
-                        }
-                        else if(strName.equals("Add to PlayList")){
-                            Toast.makeText(MainActivity.this, "yet to be added! ", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                });
-                AlertDialog alert = builderSingle.create();
-                alert.show();
-                alert.getWindow().setLayout(900, 760);
-                return true;
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
             }
         });
 
 
     }
 
-    private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
+        private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
@@ -230,7 +142,6 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         }
         return false;
     }
-
 
   /* private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
         @Override
@@ -287,6 +198,11 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
         };
 */
 
+public MusicService getInstanceOfService()
+{
+    return musicService;
+}
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -303,35 +219,31 @@ public class MainActivity extends AppCompatActivity implements MediaController.M
                 musicService =null;
                 musicBound=false;
                 finish();*/
-if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
+         if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         }
 
         if(actionBarDrawerToggle.onOptionsItemSelected(item)) return true;
         return super.onOptionsItemSelected(item);
     }
 
-    public void songPicked(View view){
+/*    public void songPicked(View view){
 
-      /*  musicService.ControllerShow(controller);*/
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.songPlaying=true;
         musicService.playSong();
         if(playbackPaused){
-            setController();
+        *//*           setController();*//*
             playbackPaused=false;
         }
-        firstTimePlay=true;
         Log.d(TAG, "songPicked: controller show called  " + isFinishing());
-        controller.show();
-    }
+*//*          controller.show();*//*
+    }*/
 
     private ServiceConnection musicConnection = new ServiceConnection(){
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
-
             musicService = binder.getService();
-            musicService.setList(songList);
             musicBound = true;
         }
 
@@ -343,28 +255,6 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         }
     };
 
-    public void getSongList() {
-        ContentResolver musicResolver = getContentResolver();
-        Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
-
-        if(musicCursor!=null && musicCursor.moveToFirst()){
-            int titleColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
-            int idColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID);
-            int artistColumn = musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.ARTIST);
-            int dataColumn=musicCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-            do {
-                long thisId = musicCursor.getLong(idColumn);
-                String thisTitle = musicCursor.getString(titleColumn);
-                String thisArtist = musicCursor.getString(artistColumn);
-                String thisData=musicCursor.getString(dataColumn);
-                songList.add(new Song(thisId, thisTitle, thisArtist,thisData));
-            }
-            while (musicCursor.moveToNext());
-        }
-    }
-
-
 
 
     @Override
@@ -372,9 +262,6 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
 
         super.onStart();
         Log.d(TAG, "onStart invoked");
-
-        songAdapter.notifyDataSetChanged();
-
         if(isMyMusicServiceRunning(MusicService.class)==false){
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
@@ -385,10 +272,6 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
             Log.d(TAG, "onStart: service binded again");
             if(playIntent!=null)  bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
            }
-/*        if(isMyMusicServiceRunning(MusicService.class)==false) {
-            playIntent = new Intent(getApplicationContext(), MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent); }*/
     }
 
         @Override
@@ -396,12 +279,10 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         super.onResume();
         Log.d(TAG,"onResume invoked");
             if(paused){
-                setController();
+             /*   setController();*/
                 paused=false;
-             /*  if(controller!=null) musicService.ControllerShow(controller);*/
-
             }
-      /*      controller.setEnabled(true);*/
+
         }
 
     @Override
@@ -414,7 +295,7 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
     @Override
     protected void onStop() {
         Log.d(TAG,"onStop invoked");
-         if(controller.isShowing())controller.hide();
+    /*     if(controller.isShowing())controller.hide();*/
         if(musicBound && musicService!=null) {unbindService(musicConnection); musicBound=false;}
         Log.d(TAG, "onStop: service unbinded here ");
         super.onStop();
@@ -426,40 +307,34 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         Log.d(TAG,"onRestart invoked");
     }
 
-/*
-    @Override
-    public void onBackPressed() {
-        finish();
-    }
-*/
 
     @Override
     protected void onDestroy() {
         Log.d(TAG,"onDestroy invoked");
         super.onDestroy();
 
-        if(isPlaying()==false && firstTimePlay==false)
+/*        if(isPlaying()==false && firstTimePlay==false)
         {
             if (playIntent != null) stopService(playIntent);
                  musicService = null;
-/*            try {
+            try {
                 if (broadcastNotificationReceiver != null) {
                     LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastNotificationReceiver);
                 }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
-            }*/
-/*            try {
+            }
+            try {
                 if (broadcastBatteryReceiver != null) {
 
                 }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
-            }*/
-        }
+            }
+        }*/
     }
 
-    private void setController(){
+/*    private void setController(){
         if(controller==null) controller = new MusicController(this);
 
         controller.setPrevNextListeners(new View.OnClickListener() {
@@ -476,9 +351,9 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         controller.setMediaPlayer(this);
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
-    }
+    }*/
 
-    private void playNext(){
+/*    private void playNext(){
         musicService.playNext();
         if(playbackPaused){
             setController();
@@ -497,9 +372,10 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         }
         musicService.songPlaying=true;
         musicService.startNotification();
-    }
+    }*/
 
 
+/*
     @Override
     public void start() {
         musicService.go();
@@ -508,7 +384,9 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         setController();
     }
 
+*/
 
+/*
     @Override
     public void pause() {
         musicService.songPlaying=false;
@@ -516,7 +394,9 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
         musicService.startNotification();
         setController();
     }
+*/
 
+/*
     @Override
     public int getDuration() {
         if(musicService!=null && musicBound && musicService.isPng())
@@ -569,15 +449,6 @@ if(isMyMusicServiceRunning(MusicService.class)) controller.show();break;
     public int getAudioSessionId() {
         return 0;
     }
-
-/*    @Override
-    public void onBackPressed() {
-        // I cannot call addToBackstack method here as there is no previous activity here
-        //moveTaskToBack makes the current activity moves to the background without being destroyed
-        // I implemented this so that when the user presses back button the current activity is not destroyed
-        // Also I read the official android documentation page which says that "Move the task containing this activity to the back of the activity stack.....
-        // ..The activity's order within the task is unchanged"
-          *//*  moveTaskToBack(true);*//*
-    }*/
+*/
 
 }

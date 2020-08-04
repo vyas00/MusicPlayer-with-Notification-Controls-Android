@@ -36,6 +36,8 @@ private int playListSongsCount;
            playListSongsCount=db.getSongsCount();
            songAdapter=new SongAdapter(PlayListActivity.this,songList);
         songListView.setAdapter(songAdapter);
+
+
     }
 
     @Override
