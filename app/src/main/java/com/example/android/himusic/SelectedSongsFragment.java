@@ -14,7 +14,7 @@ import android.widget.ArrayAdapter;
 public class SelectedSongsFragment extends Fragment {
 
     public SelectedSongsFragment() { }
-    private  String TAG="SelectedSongsFragment";
+    private final String TAG="SelectedSongsFragment";
 
 
     @Override
@@ -59,13 +59,13 @@ public class SelectedSongsFragment extends Fragment {
     public void onPause() {
         super.onPause();
         Log.d(TAG, "onPause: SelectedSongsFragment");
-        ((MainActivity) getActivity()).selectTabText(2,"Songs");
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: SelectedSongsFragment");
+
 
     }
 

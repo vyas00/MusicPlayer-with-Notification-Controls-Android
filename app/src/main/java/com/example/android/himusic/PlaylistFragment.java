@@ -21,7 +21,7 @@ import java.util.ArrayList;
 
 public class PlaylistFragment extends Fragment {
 
-    private String TAG="PlaylistFragment";
+    private final String TAG="PlaylistFragment";
 
     private ArrayList<String> userPlayList;
     DatabaseHandler db;
@@ -57,9 +57,14 @@ public class PlaylistFragment extends Fragment {
                   @Override
                   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                       String tablename=userPlayList.get(position);
-                      Log.d(TAG, "onItemClick: from playlistFragment"+ tablename +" clicked");
-                      ((MainActivity) getActivity()).selectTabText(2,tablename);
-                      ((MainActivity) getActivity()).selectFragment(3);
+                     if(db.getSongsCount(tablename)>0) {
+                         Log.d(TAG, "onItemClick: from playlistFragment" + tablename + " clicked");
+                         ((MainActivity) getActivity()).selectTabText(2, tablename);
+                         ((MainActivity) getActivity()).selectFragment(3);
+                     }
+                     else{
+                         Toast.makeText(getActivity(), "Currently no songs in this playlist. Add songs to proceed!", Toast.LENGTH_LONG).show();
+                     }
                   }
               });
               playListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
