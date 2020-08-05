@@ -63,7 +63,7 @@ public class SongAdapter extends BaseAdapter {
         ImageView songImage= (ImageView) songLay.findViewById(R.id.iv_song_image);
         final CheckBox checkBox= (CheckBox)songLay.findViewById(R.id.cb_playlist);
         final Song currSong = songs.get(position);
-        if(db.getSong(currSong.getID())!=null) checkBox.setChecked(true);
+         if(db.getSong(currSong.getID(),"LikedSongs")!=null) checkBox.setChecked(true);
 
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());
@@ -80,12 +80,13 @@ public class SongAdapter extends BaseAdapter {
             public void onClick(View v) {
                 if(checkBox.isChecked())
                 {
-                    db.addSong(currSong);
-                    Toast.makeText(context, currSong.getTitle()+" added to playlist", Toast.LENGTH_LONG).show();
+                    db.addSong(currSong,"LikedSongs");
+                    Toast.makeText(context, currSong.getTitle()+" added to Liked Songs", Toast.LENGTH_LONG).show();
+
                 }
                 else{
-                    db.deleteSong(currSong.getID());
-                    Toast.makeText(context, currSong.getTitle()+" removed from playlist", Toast.LENGTH_LONG).show();
+                    db.deleteSong(currSong.getID(),"LikedSongs");
+                    Toast.makeText(context, currSong.getTitle()+" removed from Liked Songs", Toast.LENGTH_LONG).show();
                 }
 
             }

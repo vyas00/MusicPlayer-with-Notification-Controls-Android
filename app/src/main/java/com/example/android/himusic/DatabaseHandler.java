@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -16,36 +15,82 @@ public class DatabaseHandler extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "songsManager.db";
 
-    private static final String TABLE_SONGS = "songs";
+    private static final String TABLE_LIKED_SONGS = "likedsongs";
+
+
     private static final String SONG_NAME = "name";
     private static final String SONG_ID = "id";
     private static final String SONG_ARTIST = "artist";
     private static final String SONG_DATA = "data";
+
+    private static DatabaseHandler dbh = null;
+    private static SQLiteDatabase SDB = null;
+
+    public static synchronized DatabaseHandler getDatabaseHandlerInstance(Context c)
+    {
+        if (dbh == null)
+            dbh = new DatabaseHandler(c);
+        return dbh;
+    }
+
+    private SQLiteDatabase getSDB()
+    {
+        if (SDB != null)
+            return SDB;
+        return this.getWritableDatabase();
+    }
+
+    public void createPlaylistTable(String tabname)
+    {
+        SQLiteDatabase db = getSDB();
+
+        try
+        {
+            String stmt = "CREATE TABLE " + tabname + " (" + SONG_ID + " INTEGER," + SONG_NAME + " TEXT,"  + SONG_ARTIST + " TEXT,"+  SONG_DATA + " TEXT"+ ")";
+            db.execSQL(stmt);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     public DatabaseHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
     }
 
+    public  ArrayList<String> getPlaylistTables()
+    {
+        ArrayList<String> arrTblNames = new ArrayList<String>();
+        SQLiteDatabase db = getSDB();
+        Cursor c = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+
+        if (c.moveToFirst()) {
+            while ( !c.isAfterLast() ) {
+                if(c.getString(c.getColumnIndex("name")).equals("android_metadata")==false) {  arrTblNames.add(c.getString( c.getColumnIndex("name")));}
+                c.moveToNext();
+            }
+        }
+        return  arrTblNames;
+    }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String CREATE_SONGS_TABLE = "CREATE TABLE " + TABLE_SONGS + " (" + SONG_ID + " INTEGER," + SONG_NAME + " TEXT,"  + SONG_ARTIST + " TEXT,"+  SONG_DATA + " TEXT"+ ")";
-        db.execSQL(CREATE_SONGS_TABLE);
     }
 
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SONGS);
-
-
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_LIKED_SONGS);
         onCreate(db);
     }
 
 
-    void addSong(Song song) {
+    void addSong(Song song, String tablename) {
 
         Log.d(TAG, "Song is : " + song.getTitle() + "  " + song.getArtist());
 
@@ -59,16 +104,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         values.put(SONG_DATA, song.getData());
 
         // Inserting Row
-        db.insert(TABLE_SONGS, null, values);
+        db.insert(tablename, null, values);
 
         db.close();
     }
 
 
-    public  Song getSong(long its_id) {
+    public  Song getSong(long its_id, String tablename) {
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_SONGS, new String[]{SONG_ID, SONG_NAME, SONG_ARTIST, SONG_DATA}, SONG_ID + "=?", new String[]{Long.toString(its_id)}, null, null, null, null);
+        Cursor cursor = db.query(tablename, new String[]{SONG_ID, SONG_NAME, SONG_ARTIST, SONG_DATA}, SONG_ID + "=?", new String[]{Long.toString(its_id)}, null, null, null, null);
         if(cursor.getCount()<=0){ cursor.close(); return null;}
         if (cursor != null) cursor.moveToFirst();
 
@@ -78,10 +123,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
         return song;
     }
 
-    public ArrayList<Song> getAllSongs() {
+    public ArrayList<Song> getAllSongs(String tablename) {
         ArrayList<Song> songList = new ArrayList<Song>();
 
-        String selectQuery = "SELECT  * FROM " + TABLE_SONGS;
+        String selectQuery = "SELECT  * FROM " + tablename;
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -103,22 +148,22 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
     }
 
-    public void deleteSong( long its_id) {
+    public void deleteSong( long its_id, String tablename) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_SONGS, SONG_ID + " = ?", new String[]{Long.toString(its_id)});
+        db.delete(tablename, SONG_ID + " = ?", new String[]{Long.toString(its_id)});
         db.close();
     }
 
 
-    public void deleteTableSongs() {
+    public void deleteTable(String tablename) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_SONGS);
+        db.execSQL("DROP TABLE IF EXISTS " +tablename);
     }
 
 
-    public int getSongsCount() {
+    public int getSongsCount(String tablename) {
         int count = 0;
-        String countQuery = "SELECT  * FROM " + TABLE_SONGS;
+        String countQuery = "SELECT  * FROM " + tablename;
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery(countQuery, null);
 

@@ -18,7 +18,6 @@
         android:roundIcon="@drawable/logo_music"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PlayListActivity"></activity>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

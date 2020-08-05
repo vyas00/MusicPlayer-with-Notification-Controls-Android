@@ -6,6 +6,7 @@
     android:layout_height="67dp"
     android:id="@+id/ll_songView"
     android:longClickable="true"
+    android:onClick="songPicked"
     android:orientation="horizontal"
     android:padding="5dp" >
 

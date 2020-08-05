@@ -1,7 +1,6 @@
 package com.example.android.himusic;
 
 import android.content.Context;
-import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -11,7 +10,7 @@ class CategoryAdapter extends FragmentPagerAdapter {
     Context context;
     int totalTabs;
     public CategoryAdapter (Context c, FragmentManager fm, int totalTabs) {
-        super(fm);
+        super(fm,BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         context = c;
         this.totalTabs = totalTabs;
     }
@@ -20,20 +19,20 @@ class CategoryAdapter extends FragmentPagerAdapter {
         switch (position) {
             case 0:
                 SongFragment songFragment = new SongFragment();
-
                 return songFragment;
             case 1:
                 PlaylistFragment playlistFragment = new PlaylistFragment();
-
                 return playlistFragment;
             case 2:
-                ScheduledSongsFragment scheduledFragment = new ScheduledSongsFragment();
+                SelectedSongsFragment scheduledFragment = new SelectedSongsFragment();
 
                 return scheduledFragment;
             default:
                 return null;
         }
     }
+
+
     @Override
     public int getCount() {
         return totalTabs;

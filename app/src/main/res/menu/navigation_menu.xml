@@ -2,7 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/my_playlist"
         android:icon="@drawable/ic_playlist_play"
-        android:title="My Playlist"/>
+        android:title="Create Playlist"/>
 
     <item android:id="@+id/scheduled_dongs"
         android:icon="@drawable/ic_schedule_songs"

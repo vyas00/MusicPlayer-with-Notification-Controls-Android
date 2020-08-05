@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.MediaController;
 import android.widget.Toast;
 
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
+        db.createPlaylistTable("LikedSongs");
 
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
@@ -80,13 +82,36 @@ public class MainActivity extends AppCompatActivity  {
                 switch(id)
                 {
                     case R.id.my_playlist:
-                        Log.d(TAG, "onNavigationItemSelected: " + db.getSongsCount()+ " songs");
-                        if(db.getSongsCount()>0){
-                        Intent intent = new Intent(MainActivity.this, PlayListActivity.class);
-                        startActivity(intent); break;}
-                        else {
-                            Toast.makeText(MainActivity.this, "No songs in the playlist! Check the Box to add the song",Toast.LENGTH_LONG).show();
-                            break;}
+                        LayoutInflater li = LayoutInflater.from(MainActivity.this);
+                        View promptsView = li.inflate(R.layout.playlist_dialogbox, null);
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                        alertDialogBuilder.setView(promptsView);
+                        final EditText userInput = (EditText) promptsView.findViewById(R.id.et_playlist_dialog);
+                        alertDialogBuilder
+                                .setCancelable(false)
+                                .setPositiveButton("OK",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+
+                                                if (userInput.getText().length() != 0) {
+                                                    db.createPlaylistTable(userInput.getText().toString());
+                                                    Toast.makeText(MainActivity.this, userInput.getText().toString() + " playlist Created", Toast.LENGTH_LONG).show();
+
+                                                } else {
+                                                    Toast.makeText(MainActivity.this, "Unable to create Playlist, enter valid name ", Toast.LENGTH_LONG).show();
+                                                }
+                                            }
+                                        })
+                                .setNegativeButton("Cancel",
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int id) {
+                                                dialog.cancel();
+                                            }
+                                        });
+
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        break;
                     case R.id.scheduled_dongs:
                         Toast.makeText(MainActivity.this, "Scheduled songs",Toast.LENGTH_SHORT).show();break;
                     default:
@@ -99,7 +124,7 @@ public class MainActivity extends AppCompatActivity  {
 
                  if(isMyMusicServiceRunning(MusicService.class)==false) {
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
-                     bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+                  /*   bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);*/
                      startService(playIntent);
                      Log.d(TAG, "onCreate: service created in oncreate ");
                  }
@@ -109,9 +134,9 @@ public class MainActivity extends AppCompatActivity  {
 
         tabLayout = findViewById(R.id.music_tabLayout);
         viewPager = findViewById(R.id.viewPager);
-        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_sdcardstorage));
+        tabLayout.addTab(tabLayout.newTab().setText("Card Songs").setIcon(R.drawable.ic_sdcardstorage));
         tabLayout.addTab(tabLayout.newTab().setText("Playlist").setIcon(R.drawable.ic_playlist_play));
-        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_schedule_songs));
+        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_selected_playlist));
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         final CategoryAdapter cadapter = new CategoryAdapter(this,getSupportFragmentManager(),
                 tabLayout.getTabCount());
@@ -143,65 +168,18 @@ public class MainActivity extends AppCompatActivity  {
         return false;
     }
 
-  /* private BroadcastReceiver broadcastBatteryReceiver =new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-               String batteryLevel=intent.getExtras().getString("battery_low");
-                pause();
-                Toast.makeText(context,batteryLevel, Toast.LENGTH_LONG).show();
-        }
-    };
-*/
-
-/*
-   private BroadcastReceiver broadcastNotificationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getExtras().getString("actionname");
-
-
-            if(action.equals(musicService.ACTION_PRE)){
-                Log.d(TAG, "pre song, notification");
-                    playPrev();}
-                else if(action.equals(musicService.ACTION_PLAY)){
-                    if (isPlaying()){
-                        Log.d(TAG, "pause song, notification");
-                        pause();
-
-                    } else {
-                        start();
-                        Log.d(TAG, "play song, notification");
-                    }
-                    }
-                else if(action.equals(musicService.ACTION_NEXT)){
-                Log.d(TAG, "next song, notification");
-                    playNext(); }
-            else if(action.equals(musicService.ACTION_DESTROY_SERVICE)) {
-                Log.d(TAG, "onReceive: notification destroy");
-                if (playIntent != null) stopService(playIntent);
-                    musicService = null;
-                try {
-                    if (broadcastNotificationReceiver != null) {
-                        unregisterReceiver(broadcastNotificationReceiver);
-                    }
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (broadcastBatteryReceiver != null) {
-                        unregisterReceiver(broadcastBatteryReceiver);
-                    }
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                }
-            }            }
-        };
-*/
-
 public MusicService getInstanceOfService()
 {
     return musicService;
 }
+
+    public void selectFragment(int position){
+        viewPager.setCurrentItem(position, true);
+    }
+
+    public void selectTabText(int position, String settext){
+        tabLayout.getTabAt(position).setText(settext);
+    }
 
 
     @Override
@@ -239,6 +217,12 @@ public MusicService getInstanceOfService()
 *//*          controller.show();*//*
     }*/
 
+    public  void songPicked(View view)
+    {
+      if(musicService!=null)  Log.d(TAG, "songPicked: music service isnot null");
+      else Log.d(TAG, "songPicked: music service is null");
+    }
+
     private ServiceConnection musicConnection = new ServiceConnection(){
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -270,7 +254,7 @@ public MusicService getInstanceOfService()
         if(musicBound==false && isMyMusicServiceRunning(MusicService.class)) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             Log.d(TAG, "onStart: service binded again");
-            if(playIntent!=null)  bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
            }
     }
 
@@ -282,8 +266,12 @@ public MusicService getInstanceOfService()
              /*   setController();*/
                 paused=false;
             }
+            if(musicService!=null) Log.d(TAG, "music service is not null ");
+            else if(musicService==null) Log.d(TAG, "onResume: music service is null");
 
         }
+
+
 
     @Override
     protected void onPause() {
