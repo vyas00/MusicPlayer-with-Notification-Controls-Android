@@ -21,14 +21,14 @@
              >
         </com.google.android.material.tabs.TabLayout>
 
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/viewPager"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/music_tabLayout"
-            android:layout_centerInParent="true"
-            android:layout_marginTop="10dp"
-            tools:layout_editor_absoluteX="8dp" />
+        <FrameLayout
+            android:id="@+id/frame_container"
+            android:layout_margin="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/music_tabLayout"
+            >
+        </FrameLayout>
 
 
     </RelativeLayout>

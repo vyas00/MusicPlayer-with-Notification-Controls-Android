@@ -48,7 +48,7 @@ public class MusicService extends Service implements
 
     private MediaPlayer player;
     private  MusicController controller;
-    private ArrayList<Song> songs;
+    public ArrayList<Song> songs;
     private int songPosition=0;
     private String songTitle;
     private   String songArtist;
@@ -107,6 +107,7 @@ private NotificationManager notificationManager;
     public void setList(ArrayList<Song> theSongs){
         songs=theSongs;
     }
+
 
     private void setController(ListView songListView){
         if(controller==null) controller = new MusicController(this);
@@ -406,7 +407,6 @@ seek(pos);
 
     public void playSong(){
         player.reset();
-
         Song playSong = songs.get(songPosition);
         songTitle=playSong.getTitle();
         songArtist=playSong.getArtist();

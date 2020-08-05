@@ -26,7 +26,6 @@ public class PlaylistFragment extends Fragment {
     private ArrayList<String> userPlayList;
     DatabaseHandler db;
     private ListView playListView;
-    private boolean isViewShown = false;
 
     public PlaylistFragment() {
     }
@@ -62,7 +61,9 @@ public class PlaylistFragment extends Fragment {
                          Log.d(TAG, "onItemClick: from playlistFragment" + tablename + " clicked");
                          MusicSharedPref.setTableName(tablename);
                          ((MainActivity) getActivity()).selectTabText(2, tablename);
-                         ((MainActivity) getActivity()).selectFragment(2);
+
+                         getFragmentManager().beginTransaction().replace(R.id.frame_container,
+                                 ((MainActivity)getActivity()).getselectedSongFragmentInstance()).commit();
                      }
                      else{
                          Toast.makeText(getActivity(), "Currently no songs in this playlist. Add songs to proceed!", Toast.LENGTH_LONG).show();
@@ -83,8 +84,8 @@ public class PlaylistFragment extends Fragment {
                                               if(tableName.equals("LikedSongs")==false) {
                                                   db.deleteTable(tableName);
                                                   userPlayList = db.getPlaylistTables();
-                                                  ArrayAdapter adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, userPlayList);
-                                                  playListView.setAdapter(adapter);
+                                                  PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
+                                                  playListView.setAdapter(playlistAdapter);
                                               }
                                               else {
                                                   Toast.makeText(getActivity(), "Cannot delete Liked Songs folder from database!", Toast.LENGTH_LONG).show();

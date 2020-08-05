@@ -5,6 +5,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
@@ -53,7 +54,10 @@ public class MainActivity extends AppCompatActivity  {
     private NavigationView navigationView;
 
    private TabLayout tabLayout;
-   private ViewPager viewPager;
+
+   private  SongFragment songFragment;
+   private  PlaylistFragment playlistFragment;
+   private SelectedSongsFragment selectedSongsFragment;
 
 
 
@@ -61,10 +65,16 @@ public class MainActivity extends AppCompatActivity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        songFragment=new SongFragment();
+        playlistFragment=new PlaylistFragment();
+        selectedSongsFragment=new SelectedSongsFragment();
+        getSupportFragmentManager().beginTransaction().add(R.id.frame_container, songFragment).commit();
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
         db.createPlaylistTable("LikedSongs");
 MusicSharedPref.setContext(getApplicationContext());
+
+
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
@@ -96,6 +106,7 @@ MusicSharedPref.setContext(getApplicationContext());
                                                 if (userInput.getText().length() != 0) {
                                                     db.createPlaylistTable(userInput.getText().toString());
                                                     Toast.makeText(MainActivity.this, userInput.getText().toString() + " playlist Created", Toast.LENGTH_LONG).show();
+
 
                                                 } else {
                                                     Toast.makeText(MainActivity.this, "Unable to create Playlist, enter valid name ", Toast.LENGTH_LONG).show();
@@ -133,7 +144,6 @@ MusicSharedPref.setContext(getApplicationContext());
 
 
         tabLayout = findViewById(R.id.music_tabLayout);
-        viewPager = findViewById(R.id.viewPager);
         tabLayout.addTab(tabLayout.newTab().setText("Card Songs").setIcon(R.drawable.ic_sdcardstorage));
         tabLayout.addTab(tabLayout.newTab().setText("Playlist").setIcon(R.drawable.ic_playlist_play));
         if(MusicSharedPref.getTableName().isEmpty()==false)
@@ -143,22 +153,34 @@ MusicSharedPref.setContext(getApplicationContext());
         }
 
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-        final CategoryAdapter cadapter = new CategoryAdapter(this,getSupportFragmentManager(),
-                tabLayout.getTabCount());
-        viewPager.setAdapter(cadapter);
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                viewPager.setCurrentItem(tab.getPosition());
+                int pos= tab.getPosition();
+                if(pos==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, songFragment).commit();
+                if(pos==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, playlistFragment).commit();
+                if(pos==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, selectedSongsFragment).commit();
             }
+
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
+/*                int pos= tab.getPosition();
+                if(pos==0)getSupportFragmentManager().beginTransaction().remove(songFragment).commit();
+                if(pos==1)  getSupportFragmentManager().beginTransaction().remove(playlistFragment).commit();
+                if(pos==2) getSupportFragmentManager().beginTransaction().add(R.id.frame_container, selectedSongsFragment).commit();*/
             }
+
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
+/*                int pos= tab.getPosition();
+                if(pos==0)getSupportFragmentManager().beginTransaction().add(R.id.frame_container, songFragment).commit();
+                if(pos==1)  getSupportFragmentManager().beginTransaction().add(R.id.frame_container, playlistFragment).commit();
+                if(pos==2) getSupportFragmentManager().beginTransaction().add(R.id.frame_container, selectedSongsFragment).commit();*/
+
             }
         });
+
+
 
 
     }
@@ -178,8 +200,18 @@ public MusicService getInstanceOfService()
     return musicService;
 }
 
-    public void selectFragment(int position){
-        viewPager.setCurrentItem(position, true);
+public Fragment getSongFragmentInstance()
+{
+    return  this.songFragment;
+}
+    public Fragment getPlaylistFragmentInstance()
+    {
+        return  this.playlistFragment;
+    }
+
+    public Fragment getselectedSongFragmentInstance()
+    {
+        return  this.selectedSongsFragment;
     }
 
     public void selectTabText(int position, String settext){
