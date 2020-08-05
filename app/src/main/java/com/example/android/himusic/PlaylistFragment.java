@@ -47,10 +47,11 @@ public class PlaylistFragment extends Fragment {
         userPlayList=new ArrayList<String>();
         db=new DatabaseHandler(getActivity());
         userPlayList=db.getPlaylistTables();
+      MusicSharedPref.setContext(getActivity());
 
-        ArrayAdapter adapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1, userPlayList);
+       PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
               playListView = (ListView) viewPlaylistFragment.findViewById(R.id.play_list);
-              playListView.setAdapter(adapter);
+              playListView.setAdapter(playlistAdapter);
 
 
               playListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -59,8 +60,9 @@ public class PlaylistFragment extends Fragment {
                       String tablename=userPlayList.get(position);
                      if(db.getSongsCount(tablename)>0) {
                          Log.d(TAG, "onItemClick: from playlistFragment" + tablename + " clicked");
+                         MusicSharedPref.setTableName(tablename);
                          ((MainActivity) getActivity()).selectTabText(2, tablename);
-                         ((MainActivity) getActivity()).selectFragment(3);
+                         ((MainActivity) getActivity()).selectFragment(2);
                      }
                      else{
                          Toast.makeText(getActivity(), "Currently no songs in this playlist. Add songs to proceed!", Toast.LENGTH_LONG).show();
@@ -142,8 +144,8 @@ public class PlaylistFragment extends Fragment {
         super.onResume();
         Log.d(TAG, "onResume: PlaylistFragment");
         userPlayList=db.getPlaylistTables();
-        ArrayAdapter adapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1, userPlayList);
-        playListView.setAdapter(adapter);
+        PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
+        playListView.setAdapter(playlistAdapter);
 
     }
 

@@ -24,9 +24,9 @@ class CategoryAdapter extends FragmentPagerAdapter {
                 PlaylistFragment playlistFragment = new PlaylistFragment();
                 return playlistFragment;
             case 2:
-                SelectedSongsFragment scheduledFragment = new SelectedSongsFragment();
+                SelectedSongsFragment selectedSongFragment = new SelectedSongsFragment();
 
-                return scheduledFragment;
+                return selectedSongFragment;
             default:
                 return null;
         }

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 public class MusicSharedPref {
     Context context;
     private String TAG="MusicSharedPref";
+    private static final String TABLE_NAME_KEY ="tablename";
 
     private static final String SONGPLAYING_KEY ="songplaying";
     private static final String LONG_ID_KEY="id";
@@ -42,8 +43,12 @@ public class MusicSharedPref {
     public static  void setSongPlaying(boolean playing) {
         editor.putBoolean(SONGPLAYING_KEY, playing).commit();
     }
+
     public static  void setSongName(String name) {
         editor.putString(SONG_NAME_KEY, name).commit();
+    }
+    public static  void setTableName(String name) {
+        editor.putString(TABLE_NAME_KEY, name).commit();
     }
 
     public static  void setImagePath(String name) {
@@ -62,6 +67,9 @@ public class MusicSharedPref {
     }
     public static String getSongName() {
         return eSharedPref.getString(SONG_NAME_KEY, "");
+    }
+    public static String getTableName() {
+        return eSharedPref.getString(TABLE_NAME_KEY, "");
     }
     public static String getArtistName() {
         return eSharedPref.getString(ARTIST_NAME_KEY, "");

@@ -9,12 +9,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import java.util.ArrayList;
 
 
 public class SelectedSongsFragment extends Fragment {
 
     public SelectedSongsFragment() { }
     private final String TAG="SelectedSongsFragment";
+
+    DatabaseHandler db;
+    private ArrayList<Song> songList;
+    private ListView songView;
+    private MusicService musicService;
+    private SongAdapter songAdapter;
 
 
     @Override
@@ -27,8 +36,19 @@ public class SelectedSongsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView: SelectedSongsFragment");
+        View viewSelectedSongFragment= inflater.inflate(R.layout.fragment_selected_songs, container, false);
+ MusicSharedPref.setContext(getContext());
+        songView=viewSelectedSongFragment.findViewById(R.id.song_list);
+        songList = new ArrayList<Song>();
+         db=new DatabaseHandler(getActivity());
+         if(MusicSharedPref.getTableName().isEmpty()==false)
+         {
+             songList=db.getAllSongs(MusicSharedPref.getTableName());
+             SongAdapter songAdapter=new SongAdapter(getActivity(),songList);
+             songView.setAdapter(songAdapter);
+         }
 
-        return inflater.inflate(R.layout.fragment_selected_songs, container, false);
+        return viewSelectedSongFragment ;
     }
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -65,8 +85,13 @@ public class SelectedSongsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: SelectedSongsFragment");
-
-
+        if(songList.size()<=0 &&MusicSharedPref.getTableName().isEmpty()==false)
+        {
+            Log.d(TAG, "onResume: SelectedSongsFragment songlist loaded here");
+            songList=db.getAllSongs(MusicSharedPref.getTableName());
+            SongAdapter songAdapter=new SongAdapter(getActivity(),songList);
+            songView.setAdapter(songAdapter);
+        }
     }
 
     @Override

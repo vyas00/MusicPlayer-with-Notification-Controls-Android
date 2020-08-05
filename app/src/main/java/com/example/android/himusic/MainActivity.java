@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity  {
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
         db.createPlaylistTable("LikedSongs");
-
+MusicSharedPref.setContext(getApplicationContext());
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
@@ -136,7 +136,12 @@ public class MainActivity extends AppCompatActivity  {
         viewPager = findViewById(R.id.viewPager);
         tabLayout.addTab(tabLayout.newTab().setText("Card Songs").setIcon(R.drawable.ic_sdcardstorage));
         tabLayout.addTab(tabLayout.newTab().setText("Playlist").setIcon(R.drawable.ic_playlist_play));
-        tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_selected_playlist));
+        if(MusicSharedPref.getTableName().isEmpty()==false)
+        {tabLayout.addTab(tabLayout.newTab().setText(MusicSharedPref.getTableName()).setIcon(R.drawable.ic_selected_playlist));}
+        else{
+            tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_selected_playlist));
+        }
+
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         final CategoryAdapter cadapter = new CategoryAdapter(this,getSupportFragmentManager(),
                 tabLayout.getTabCount());
@@ -180,6 +185,7 @@ public MusicService getInstanceOfService()
     public void selectTabText(int position, String settext){
         tabLayout.getTabAt(position).setText(settext);
     }
+
 
 
     @Override
