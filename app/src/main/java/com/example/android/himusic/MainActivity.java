@@ -33,10 +33,14 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity  {
 
@@ -65,8 +69,7 @@ public class MainActivity extends AppCompatActivity  {
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
         db.createPlaylistTable("LikedSongs");
-MusicSharedPref.setContext(getApplicationContext());
-
+     MusicSharedPref.setContext(getApplicationContext());
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
         actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
@@ -116,7 +119,106 @@ MusicSharedPref.setContext(getApplicationContext());
                         alertDialog.show();
                         break;
                     case R.id.scheduled_dongs:
-                        Toast.makeText(MainActivity.this, "Scheduled songs",Toast.LENGTH_SHORT).show();break;
+                        if(MusicSharedPref.getScheduleSongName().equals("null")==false) {
+                            LayoutInflater lI = LayoutInflater.from(MainActivity.this);
+                            View v = lI.inflate(R.layout.scheduled_dialogbox, null);
+                            AlertDialog.Builder alertDialogBuilderforAlarm = new AlertDialog.Builder(MainActivity.this);
+                            alertDialogBuilderforAlarm.setView(v);
+                            final TextView alarmsongname = (TextView) v.findViewById(R.id.tv_alarm_song_name);
+                            final TextView alarmsongtime = (TextView) v.findViewById(R.id.tv_alarm_song_time);
+                            alarmsongname.setText("Song Name: " + MusicSharedPref.getScheduleSongName());
+                            alarmsongtime.setText("Scheduled time: " + getTimeStamp(MusicSharedPref.getScheduleTimeLong()));
+                            alertDialogBuilderforAlarm
+                                    .setCancelable(false)
+                                    .setPositiveButton("Re-Schedule",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    AlarmManager alarmManager = (AlarmManager) MainActivity.this.getSystemService(Context.ALARM_SERVICE);
+                                                    Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
+                                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                                    if (pendingIntent != null) {
+                                                        alarmManager.cancel(pendingIntent);
+                                                        pendingIntent.cancel();
+                                                    }
+                                                    LayoutInflater li = LayoutInflater.from(MainActivity.this);
+                                                    View promptsView = li.inflate(R.layout.time_dialogbox, null);
+
+                                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+
+                                                    alertDialogBuilder.setView(promptsView);
+                                                    final EditText userInput = (EditText) promptsView.findViewById(R.id.et_time_dialog);
+                                                    alertDialogBuilder
+                                                            .setCancelable(false)
+                                                            .setPositiveButton("OK",
+                                                                    new DialogInterface.OnClickListener() {
+                                                                        public void onClick(DialogInterface dialog, int id) {
+
+                                                                            long timeAtButtonClick = 0;
+                                                                            if (userInput.getText().length() != 0) {
+
+                                                                                timeAtButtonClick = Long.parseLong(userInput.getText().toString());
+                                                                                Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
+                                                                                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                                                                                AlarmManager alarmManager = (AlarmManager) MainActivity.this.getSystemService(Context.ALARM_SERVICE);
+
+                                                                                long currentTimeinMilliSec = System.currentTimeMillis();
+                                                                                long additionalTime = timeAtButtonClick * 60 * 1000;
+                                                                                MusicSharedPref.setScheduledTime(currentTimeinMilliSec + additionalTime);
+
+                                                                                alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec + additionalTime, pendingIntent);
+                                                                                Toast.makeText(MainActivity.this, MusicSharedPref.getScheduleSongName() + " has been Re-scheduled for playing", Toast.LENGTH_LONG).show();
+                                                                                Log.d(TAG, "user has placed a song order ");
+
+
+                                                                            } else {
+                                                                                Toast.makeText(MainActivity.this, "Cannot schedule the song, please enter the time and try again ", Toast.LENGTH_LONG).show();
+                                                                            }
+                                                                        }
+                                                                    })
+                                                            .setNegativeButton("Cancel",
+                                                                    new DialogInterface.OnClickListener() {
+                                                                        public void onClick(DialogInterface dialog, int id) {
+                                                                            dialog.cancel();
+                                                                        }
+                                                                    });
+
+                                                    AlertDialog alertDialog = alertDialogBuilder.create();
+                                                    alertDialog.show();
+
+                                                }
+                                            })
+                                    .setNegativeButton("Cancel Schedule",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    AlarmManager alarmManager = (AlarmManager) MainActivity.this.getSystemService(Context.ALARM_SERVICE);
+                                                    Intent intent = new Intent(MainActivity.this, SongSchedulerBroadcastReceiver.class);
+                                                    PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                                    if (pendingIntent != null) {
+                                                        alarmManager.cancel(pendingIntent);
+                                                        pendingIntent.cancel();
+                                                        Toast.makeText(MainActivity.this, "Scheduled song canceled ", Toast.LENGTH_LONG).show();
+                                                        MusicSharedPref.setScheduleSongName("null");
+                                                    }
+                                                    dialog.cancel();
+                                                }
+                                            })
+
+                                    .setNeutralButton("OK",
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    dialog.cancel();
+                                                }
+                                            });
+
+
+                            AlertDialog alertDialogalarm = alertDialogBuilderforAlarm.create();
+                            alertDialogalarm.show();
+                        }
+                        else{
+                            Toast.makeText(MainActivity.this, "No Song added for Scheduled Play ", Toast.LENGTH_LONG).show();
+                        }
+
                     default:
                         return true;
                 }
@@ -157,24 +259,25 @@ MusicSharedPref.setContext(getApplicationContext());
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
-/*                int pos= tab.getPosition();
-                if(pos==0)getSupportFragmentManager().beginTransaction().remove(songFragment).commit();
-                if(pos==1)  getSupportFragmentManager().beginTransaction().remove(playlistFragment).commit();
-                if(pos==2) getSupportFragmentManager().beginTransaction().add(R.id.frame_container, selectedSongsFragment).commit();*/
             }
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-/*                int pos= tab.getPosition();
-                if(pos==0)getSupportFragmentManager().beginTransaction().add(R.id.frame_container, songFragment).commit();
-                if(pos==1)  getSupportFragmentManager().beginTransaction().add(R.id.frame_container, playlistFragment).commit();
-                if(pos==2) getSupportFragmentManager().beginTransaction().add(R.id.frame_container, selectedSongsFragment).commit();*/
 
             }
         });
 
 
 
+    }
+
+    public String getTimeStamp(long timeinMillies) {
+        String date = null;
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        date = formatter.format(new Date(timeinMillies));
+        System.out.println("Today is " + date);
+
+        return date;
     }
 
         private boolean isMyMusicServiceRunning(Class<?> serviceClass) {

@@ -15,6 +15,8 @@ public class SongSchedulerBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "song order intent has been received in SongScheduleBroadcastReceiver");
+        MusicSharedPref.setContext(context);
+        MusicSharedPref.setScheduleSongName("null");
 
         Intent intentToService = new Intent(context,MusicService.class);
         intentToService.putExtra("song_order", "ORDER");

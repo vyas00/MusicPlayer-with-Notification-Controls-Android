@@ -19,6 +19,7 @@ public class MusicSharedPref {
     private static final String SCHEDULE_SONG_NAME_KEY="names";
     private static final String SCHEDULE_ARTIST_NAME_KEY="artists";
     private static final String SCHEDULE_IMAGEPATH_KEY ="imagepaths";
+    private static final String SCHEDULE_TIME_KEY ="time";
 
     private static final String MUSIC_PREF="music";
 
@@ -60,6 +61,9 @@ public class MusicSharedPref {
     }
     public static  void setLongId(Long id) {
         editor.putLong(LONG_ID_KEY,id).commit();
+    }
+    public static  void setScheduledTime(Long time) {
+        editor.putLong(SCHEDULE_TIME_KEY,time).commit();
     }
 
     public static boolean getSongPlaying() {
@@ -110,6 +114,9 @@ public class MusicSharedPref {
         return eSharedPref.getLong(SCHEDULE_LONG_ID_KEY,0);
     }
 
+    public static Long getScheduleTimeLong() {
+        return eSharedPref.getLong(SCHEDULE_TIME_KEY,0);
+    }
 
 
 }

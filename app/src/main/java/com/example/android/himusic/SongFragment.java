@@ -144,6 +144,7 @@ private  final  String TAG="SongFragment";
 
                                                         long currentTimeinMilliSec = System.currentTimeMillis();
                                                         long additionalTime = timeAtButtonClick * 60 * 1000;
+                                                        MusicSharedPref.setScheduledTime(currentTimeinMilliSec + additionalTime);
 
                                                         alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec + additionalTime, pendingIntent);
                                                         Toast.makeText(getActivity(), songName + " has been scheduled for playing", Toast.LENGTH_LONG).show();
@@ -151,7 +152,7 @@ private  final  String TAG="SongFragment";
 
 
                                                     } else {
-                                                        Toast.makeText(getActivity(), "Canot schedule the song, please enter the time and try again ", Toast.LENGTH_LONG).show();
+                                                        Toast.makeText(getActivity(), "Cannot schedule the song, please enter the time and try again ", Toast.LENGTH_LONG).show();
                                                     }
                                                 }
                                             })

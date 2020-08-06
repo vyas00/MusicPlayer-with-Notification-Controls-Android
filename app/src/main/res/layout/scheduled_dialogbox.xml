@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_playlist_dialog"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:padding="10dp" >
+
+    <TextView
+    android:id="@+id/tv_alarm_song_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Playlist Name: "
+    android:textAppearance="?android:attr/textAppearanceLarge"
+    android:textColor="#2C2B2B"
+    android:textSize="18sp"
+    android:textStyle="normal" />
+
+    <TextView
+        android:id="@+id/tv_alarm_song_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Playlist Name: "
+        android:layout_marginTop="5dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#2C2B2B"
+        android:textSize="18sp"
+        android:textStyle="normal" />
+
+
+</LinearLayout>
