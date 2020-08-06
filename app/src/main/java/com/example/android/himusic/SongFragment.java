@@ -2,12 +2,17 @@ package com.example.android.himusic;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageItemInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
@@ -21,24 +26,25 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
-public class SongFragment extends Fragment  {
-    public SongFragment() { }
-private  final  String TAG="SongFragment";
+public class SongFragment extends Fragment {
+    public SongFragment() {
+    }
+
+    private final String TAG = "SongFragment";
     private SongAdapter songAdapter;
     DatabaseHandler db;
-    private ArrayList<Song> songList;
+    private ArrayList<Song> songList= new ArrayList<Song>();;
     private ListView songView;
     private MusicService musicService;
     private MainActivity instanceOfMainactivity;
-
 
 
     @Override
@@ -50,38 +56,37 @@ private  final  String TAG="SongFragment";
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View viewSongFragment=  inflater.inflate(R.layout.fragment_song, container, false);
+        View viewSongFragment = inflater.inflate(R.layout.fragment_song, container, false);
         Log.d(TAG, "onCreateView: of SongFragment");
 
-        songView=viewSongFragment.findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
+        songView = viewSongFragment.findViewById(R.id.song_list);
+        if(songList.size()==0) getSongList();
+        db = new DatabaseHandler(getActivity());
 
-        db=new DatabaseHandler(getActivity());
-         getSongList();
-
-           instanceOfMainactivity= (MainActivity)getActivity();
-           if(instanceOfMainactivity.getInstanceOfService()!=null)
-           { musicService=instanceOfMainactivity.getInstanceOfService();
-               musicService.setList(songList);  }
+        instanceOfMainactivity = (MainActivity) getActivity();
+        if (instanceOfMainactivity.getInstanceOfService() != null) {
+            musicService = instanceOfMainactivity.getInstanceOfService();
+            musicService.setList(songList);
+        }
 
 
-        Collections.sort(songList, new Comparator<Song>(){
-            public int compare(Song a, Song b){
+        Collections.sort(songList, new Comparator<Song>() {
+            public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
 
-          songAdapter = new SongAdapter(getActivity(), songList);
-          songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-              @Override
-              public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                  Log.d(TAG, "onItemClick: from songfragment to play song");
-                  musicService.setSong(position);
-                  musicService.songPlaying=true;
-                  musicService.playSong();
-              }
-          });
-          songView.setAdapter(songAdapter);
+        songAdapter = new SongAdapter(getActivity(), songList);
+        songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "onItemClick: from songfragment to play song");
+                musicService.setSong(position);
+                musicService.songPlaying = true;
+                musicService.playSong();
+            }
+        });
+        songView.setAdapter(songAdapter);
 
         songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -90,12 +95,12 @@ private  final  String TAG="SongFragment";
                 builderSingle.setIcon(R.drawable.logo_music);
                 builderSingle.setTitle("Select your choice: ");
 
-                final int position=pos;
-                final Song clickedsong= songList.get(pos);
-                final String songName= clickedsong.getTitle();
-                final String songArtist=clickedsong.getArtist();
-                final long songId=clickedsong.getID();
-                final String imagepath=clickedsong.getData();
+                final int position = pos;
+                final Song clickedsong = songList.get(pos);
+                final String songName = clickedsong.getTitle();
+                final String songArtist = clickedsong.getArtist();
+                final long songId = clickedsong.getID();
+                final String imagepath = clickedsong.getData();
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
@@ -172,13 +177,12 @@ private  final  String TAG="SongFragment";
                             musicService.playSong();
                         }*/
 
-                        else if(strName.equals("Add to PlayList"))
-                        {
+                        else if (strName.equals("Add to PlayList")) {
                             AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
                             builderSingle.setIcon(R.drawable.logo_music);
                             builderSingle.setTitle("PlayList: ");
                             ArrayList<String> playlist = new ArrayList<String>();
-                            playlist=db.getPlaylistTables();
+                            playlist = db.getPlaylistTables();
                             final ArrayAdapter<String> stringArrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_singlechoice, playlist);
 
                             builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -192,8 +196,8 @@ private  final  String TAG="SongFragment";
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     String tableName = stringArrayAdapter.getItem(which);
-                                    db.addSong(clickedsong,tableName);
-                                    Toast.makeText(getActivity(), songName + " added to "+ tableName+ " playlist", Toast.LENGTH_LONG).show();
+                                    db.addSong(clickedsong, tableName);
+                                    Toast.makeText(getActivity(), songName + " added to " + tableName + " playlist", Toast.LENGTH_LONG).show();
                                 }
                             });
                             builderSingle.show();
@@ -207,8 +211,6 @@ private  final  String TAG="SongFragment";
                 return true;
             }
         });
-
-
 
 
         return viewSongFragment;
@@ -237,10 +239,11 @@ private  final  String TAG="SongFragment";
 
     @Override
     public void onStart() {
-        if(musicService==null && instanceOfMainactivity.getInstanceOfService()!=null)
-        { musicService=instanceOfMainactivity.getInstanceOfService();
-            musicService.setList(songList);}
-        if(musicService==null) Log.d(TAG, "onStart: music service is null");
+        if (musicService == null && instanceOfMainactivity.getInstanceOfService() != null) {
+            musicService = instanceOfMainactivity.getInstanceOfService();
+            musicService.setList(songList);
+        }
+        if (musicService == null) Log.d(TAG, "onStart: music service is null");
         else Log.d(TAG, "onStart: Music service is not null");
         super.onStart();
     }

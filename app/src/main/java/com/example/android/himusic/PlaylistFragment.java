@@ -85,6 +85,8 @@ public class PlaylistFragment extends Fragment {
                                               String tableName= userPlayList.get(position);
                                               if(tableName.equals("LikedSongs")==false) {
                                                   db.deleteTable(tableName);
+                                                  MusicSharedPref.setTableName("songs");
+                                                  ((MainActivity) getActivity()).selectTabText(2,"songs");
                                                   userPlayList = db.getPlaylistTables();
                                                   PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
                                                   playListView.setAdapter(playlistAdapter);

@@ -78,6 +78,7 @@ private NotificationManager notificationManager;
                 songTitle = MusicSharedPref.getScheduleSongName();
                 currSong = MusicSharedPref.getScheduleLongId();
                 songImagePath=MusicSharedPref.getScheduleImagePath();
+                MusicSharedPref.setScheduleSongName("null");
                 ArrayList<Song> notifiSong = new ArrayList<>();
                 notifiSong.add(new Song(currSong, songTitle, songArtist,songImagePath));
                 setList(notifiSong);

@@ -45,29 +45,31 @@ public class SelectedSongsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView: SelectedSongsFragment");
-        View viewSelectedSongFragment= inflater.inflate(R.layout.fragment_selected_songs, container, false);
+        View viewSelectedSongFragment = inflater.inflate(R.layout.fragment_selected_songs, container, false);
 
-            MusicSharedPref.setContext(getContext());
-            songView=viewSelectedSongFragment.findViewById(R.id.song_list);
-            songList = new ArrayList<Song>();
-            db=new DatabaseHandler(getActivity());
-            songList=db.getAllSongs(MusicSharedPref.getTableName());
+        MusicSharedPref.setContext(getContext());
+        songView = viewSelectedSongFragment.findViewById(R.id.song_list);
+        songList = new ArrayList<Song>();
+        db = new DatabaseHandler(getActivity());
+        if (MusicSharedPref.getTableName().equals("songs") == false){
+            songList = db.getAllSongs(MusicSharedPref.getTableName());
 
-           SongAdapter  songAdapter = new SongAdapter(getActivity(), songList);
+        SongAdapter songAdapter = new SongAdapter(getActivity(), songList);
         songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "onItemClick: from scheduled fragment to play song");
                 musicService.setSong(position);
-                musicService.songPlaying=true;
+                musicService.songPlaying = true;
                 musicService.playSong();
             }
         });
-           songView.setAdapter(songAdapter);
+        songView.setAdapter(songAdapter);
 
-             if(((MainActivity)getActivity()).getInstanceOfService()!=null) {
-                musicService=((MainActivity)getActivity()).getInstanceOfService();
-                musicService.setList(songList);  }
+        if (((MainActivity) getActivity()).getInstanceOfService() != null) {
+            musicService = ((MainActivity) getActivity()).getInstanceOfService();
+            musicService.setList(songList);
+        }
 
         songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -76,16 +78,16 @@ public class SelectedSongsFragment extends Fragment {
                 builderSingle.setIcon(R.drawable.logo_music);
                 builderSingle.setTitle("Select your choice: ");
 
-                final int position=pos;
-                final Song clickedsong= songList.get(pos);
-                final String songName= clickedsong.getTitle();
-                final String songArtist=clickedsong.getArtist();
-                final long songId=clickedsong.getID();
-                final String imagepath=clickedsong.getData();
+                final int position = pos;
+                final Song clickedsong = songList.get(pos);
+                final String songName = clickedsong.getTitle();
+                final String songArtist = clickedsong.getArtist();
+                final long songId = clickedsong.getID();
+                final String imagepath = clickedsong.getData();
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
-             /*   arrayAdapter.add("Play Song");*/
+                /*   arrayAdapter.add("Play Song");*/
                 arrayAdapter.add("Delete From Playlist");
 
                 builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -160,13 +162,12 @@ public class SelectedSongsFragment extends Fragment {
                         }
 */
 
-                        else if(strName.equals("Delete From Playlist"))
-                        {
+                        else if (strName.equals("Delete From Playlist")) {
                             db.deleteSong(songId, MusicSharedPref.getTableName());
 
-                            Toast.makeText(getActivity(), songName+" removed", Toast.LENGTH_LONG).show();
-                            songList=db.getAllSongs(MusicSharedPref.getTableName());
-                            SongAdapter songAdapter=new SongAdapter(getActivity(),songList);
+                            Toast.makeText(getActivity(), songName + " removed", Toast.LENGTH_LONG).show();
+                            songList = db.getAllSongs(MusicSharedPref.getTableName());
+                            SongAdapter songAdapter = new SongAdapter(getActivity(), songList);
                             songView.setAdapter(songAdapter);
                         }
                     }
@@ -177,6 +178,8 @@ public class SelectedSongsFragment extends Fragment {
                 return true;
             }
         });
+
+    }
 
         return viewSelectedSongFragment ;
     }
@@ -215,21 +218,25 @@ public class SelectedSongsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: SelectedSongsFragment");
-
-        if(musicService==null) Log.d(TAG, "onResume of SelectedSongFragment: music service is null");
-        else Log.d(TAG, "onResume of SelectedSongFragment: Music service is not null");
-
-        Log.d(TAG, "onResume: size of list in service  "+musicService.songs.size());
+        if (MusicSharedPref.getTableName().equals("songs") == false) {
+            if (musicService == null)
+                Log.d(TAG, "onResume of SelectedSongFragment: music service is null");
+            else Log.d(TAG, "onResume of SelectedSongFragment: Music service is not null");
+            Log.d(TAG, "onResume: size of list in service  " + musicService.songs.size());
+        }
     }
-
 
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: SelectedSongsFragment");
-        if(musicService==null && ((MainActivity)getActivity()).getInstanceOfService()!=null) {
-            musicService=((MainActivity)getActivity()).getInstanceOfService();
-            musicService.setList(songList);  }
+
+        if (MusicSharedPref.getTableName().equals("songs") == false) {
+            if (musicService == null && ((MainActivity) getActivity()).getInstanceOfService() != null) {
+                musicService = ((MainActivity) getActivity()).getInstanceOfService();
+                musicService.setList(songList);
+            }
+        }
     }
 
     @Override
