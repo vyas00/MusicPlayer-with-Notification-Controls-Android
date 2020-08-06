@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="45dp"
         android:layout_height="50dp"
-        android:layout_marginLeft="19dp"
+        android:layout_marginLeft="15dp"
         android:src="@drawable/ic_playlist_play" />
 
     <LinearLayout

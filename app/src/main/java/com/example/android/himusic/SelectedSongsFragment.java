@@ -45,14 +45,15 @@ public class SelectedSongsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView: SelectedSongsFragment");
-        View viewSelectedSongFragment = inflater.inflate(R.layout.fragment_selected_songs, container, false);
 
-        MusicSharedPref.setContext(getContext());
-        songView = viewSelectedSongFragment.findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
-        db = new DatabaseHandler(getActivity());
         if (MusicSharedPref.getTableName().equals("songs") == false){
+            View viewSelectedSongFragment = inflater.inflate(R.layout.fragment_selected_songs, container, false);
+            songList = new ArrayList<Song>();
+            db = new DatabaseHandler(getActivity());
+            MusicSharedPref.setContext(getContext());
+
             songList = db.getAllSongs(MusicSharedPref.getTableName());
+            songView = viewSelectedSongFragment.findViewById(R.id.song_list);
 
         SongAdapter songAdapter = new SongAdapter(getActivity(), songList);
         songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -132,7 +133,7 @@ public class SelectedSongsFragment extends Fragment {
 
                                                         long currentTimeinMilliSec = System.currentTimeMillis();
                                                         long additionalTime = timeAtButtonClick * 60 * 1000;
-
+                                                        MusicSharedPref.setScheduledTime(currentTimeinMilliSec + additionalTime);
                                                         alarmManager.set(AlarmManager.RTC_WAKEUP, currentTimeinMilliSec + additionalTime, pendingIntent);
                                                         Toast.makeText(getActivity(), songName + " has been scheduled for playing", Toast.LENGTH_LONG).show();
                                                         Log.d(TAG, "user has placed a song order ");
@@ -179,9 +180,13 @@ public class SelectedSongsFragment extends Fragment {
             }
         });
 
-    }
+            return viewSelectedSongFragment;
+        }
+        else {
+            View viewSelectedSongFragment = inflater.inflate(R.layout.no_playlist, container, false);
 
-        return viewSelectedSongFragment ;
+            return viewSelectedSongFragment;
+        }
     }
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
