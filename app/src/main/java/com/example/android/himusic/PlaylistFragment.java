@@ -16,6 +16,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.material.tabs.TabLayout;
+
 import java.util.ArrayList;
 
 
@@ -26,6 +28,7 @@ public class PlaylistFragment extends Fragment {
     private ArrayList<String> userPlayList;
     DatabaseHandler db;
     private ListView playListView;
+    private int totalTables;
 
     public PlaylistFragment() {
     }
@@ -43,10 +46,11 @@ public class PlaylistFragment extends Fragment {
         Log.d(TAG, "onCreateView: PlaylistFragment");
         View viewPlaylistFragment=  inflater.inflate(R.layout.fragment_playlist, container, false);
 
-        userPlayList=new ArrayList<String>();
+         userPlayList=new ArrayList<String>();
         db=new DatabaseHandler(getActivity());
-        userPlayList=db.getPlaylistTables();
-      MusicSharedPref.setContext(getActivity());
+         userPlayList=db.getPlaylistTables();
+         MusicSharedPref.setContext(getActivity());
+          totalTables=userPlayList.size();
 
        PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
               playListView = (ListView) viewPlaylistFragment.findViewById(R.id.play_list);
@@ -61,9 +65,7 @@ public class PlaylistFragment extends Fragment {
                          Log.d(TAG, "onItemClick: from playlistFragment" + tablename + " clicked");
                          MusicSharedPref.setTableName(tablename);
                          ((MainActivity) getActivity()).selectTabText(2, tablename);
-
-                         getFragmentManager().beginTransaction().replace(R.id.frame_container,
-                                 ((MainActivity)getActivity()).getselectedSongFragmentInstance()).commit();
+                         ((MainActivity)getActivity()).tabLayout.getTabAt(2).select();
                      }
                      else{
                          Toast.makeText(getActivity(), "Currently no songs in this playlist. Add songs to proceed!", Toast.LENGTH_LONG).show();
@@ -144,16 +146,16 @@ public class PlaylistFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: PlaylistFragment");
-        userPlayList=db.getPlaylistTables();
-        PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
-        playListView.setAdapter(playlistAdapter);
-
     }
 
     @Override
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: PlaylistFragment");
+
+        if(userPlayList.size()!=totalTables) { userPlayList=db.getPlaylistTables();
+            PlaylistAdapter playlistAdapter= new PlaylistAdapter(getActivity(), userPlayList);
+            playListView.setAdapter(playlistAdapter); }
     }
 
     @Override

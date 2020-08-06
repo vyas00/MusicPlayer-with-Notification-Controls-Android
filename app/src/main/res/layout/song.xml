@@ -6,7 +6,6 @@
     android:layout_height="67dp"
     android:id="@+id/ll_songView"
     android:longClickable="true"
-    android:onClick="songPicked"
     android:orientation="horizontal"
     android:padding="5dp" >
 
@@ -19,6 +18,7 @@
         android:layout_width="230dp"
         android:layout_height="match_parent"
         android:layout_marginLeft="15dp"
+        android:id="@+id/listner_songview"
         android:orientation="vertical">
 
         <TextView

@@ -9,9 +9,9 @@
     >
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="55dp"
-        android:layout_marginLeft="22dp"
+        android:layout_width="45dp"
+        android:layout_height="50dp"
+        android:layout_marginLeft="19dp"
         android:src="@drawable/ic_playlist_play" />
 
     <LinearLayout

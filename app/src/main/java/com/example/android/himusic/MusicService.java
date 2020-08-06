@@ -95,11 +95,14 @@ private NotificationManager notificationManager;
     public void onCreate() {
         super.onCreate();
         songPosition =0;
-        player=new MediaPlayer();
+       if(player==null) player=new MediaPlayer();
+        Log.d(TAG," service started in OnCreate: ");
+if(player==null) Log.d(TAG, "onCreate: player is null");
+else Log.d(TAG, "onCreate: player is not null");
         initMusicPlayer();
 
          MusicSharedPref.setContext(getApplicationContext());
-        Log.d(TAG,"service started : ");
+
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastNotificationReceiver, new IntentFilter("TRACKS"));
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastBatteryReceiver, new IntentFilter("BATTERY_LOW"));
     }
@@ -406,7 +409,10 @@ seek(pos);
     }
 
     public void playSong(){
+    if(player==null) { Log.d(TAG, "playSong: player is null"); }
+      else  Log.d(TAG, "playSong: player is not null");
         player.reset();
+        Log.d(TAG, "playSong: after reset called: ");
         Song playSong = songs.get(songPosition);
         songTitle=playSong.getTitle();
         songArtist=playSong.getArtist();
@@ -486,6 +492,7 @@ MusicSharedPref.setImagePath(songImagePath);
         Log.d(TAG, "onDestroy: battery broadcast receiver unregistered");
         player.stop();
         player.release();
+        player=null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && notificationManager!=null){
             stopForeground(true);
             notificationManager.cancelAll();

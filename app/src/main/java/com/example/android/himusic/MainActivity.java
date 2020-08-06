@@ -31,6 +31,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.Toast;
 
@@ -53,27 +54,18 @@ public class MainActivity extends AppCompatActivity  {
     private ActionBarDrawerToggle actionBarDrawerToggle;
     private NavigationView navigationView;
 
-   private TabLayout tabLayout;
+   public TabLayout tabLayout;
 
-   private  SongFragment songFragment;
-   private  PlaylistFragment playlistFragment;
-   private SelectedSongsFragment selectedSongsFragment;
-
-
+   public int tabPosition=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        songFragment=new SongFragment();
-        playlistFragment=new PlaylistFragment();
-        selectedSongsFragment=new SelectedSongsFragment();
-        getSupportFragmentManager().beginTransaction().add(R.id.frame_container, songFragment).commit();
         Log.d(TAG,"onCreate invoked :");
         db=new DatabaseHandler(MainActivity.this);
         db.createPlaylistTable("LikedSongs");
 MusicSharedPref.setContext(getApplicationContext());
-
 
 
         drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
@@ -135,8 +127,8 @@ MusicSharedPref.setContext(getApplicationContext());
 
                  if(isMyMusicServiceRunning(MusicService.class)==false) {
                      playIntent = new Intent(getApplicationContext(), MusicService.class);
-                  /*   bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);*/
-                     startService(playIntent);
+                     bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+                            startService(playIntent);
                      Log.d(TAG, "onCreate: service created in oncreate ");
                  }
                  else{firstTimePlay=true;}
@@ -156,10 +148,11 @@ MusicSharedPref.setContext(getApplicationContext());
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                int pos= tab.getPosition();
-                if(pos==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, songFragment).commit();
-                if(pos==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, playlistFragment).commit();
-                if(pos==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, selectedSongsFragment).commit();
+                tabPosition= tab.getPosition();
+                Log.d(TAG, "onTabSelected: "+ tabPosition);
+                if(tabPosition==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SongFragment()).commit();
+                if(tabPosition==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new PlaylistFragment()).commit();
+                if(tabPosition==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SelectedSongsFragment()).commit();
             }
 
             @Override
@@ -182,7 +175,6 @@ MusicSharedPref.setContext(getApplicationContext());
 
 
 
-
     }
 
         private boolean isMyMusicServiceRunning(Class<?> serviceClass) {
@@ -200,19 +192,6 @@ public MusicService getInstanceOfService()
     return musicService;
 }
 
-public Fragment getSongFragmentInstance()
-{
-    return  this.songFragment;
-}
-    public Fragment getPlaylistFragmentInstance()
-    {
-        return  this.playlistFragment;
-    }
-
-    public Fragment getselectedSongFragmentInstance()
-    {
-        return  this.selectedSongsFragment;
-    }
 
     public void selectTabText(int position, String settext){
         tabLayout.getTabAt(position).setText(settext);
@@ -255,11 +234,6 @@ public Fragment getSongFragmentInstance()
 *//*          controller.show();*//*
     }*/
 
-    public  void songPicked(View view)
-    {
-      if(musicService!=null)  Log.d(TAG, "songPicked: music service isnot null");
-      else Log.d(TAG, "songPicked: music service is null");
-    }
 
     private ServiceConnection musicConnection = new ServiceConnection(){
         @Override
@@ -267,6 +241,10 @@ public Fragment getSongFragmentInstance()
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
             musicService = binder.getService();
             musicBound = true;
+            Log.d(TAG, "onServiceConnected: invoked");
+            if(tabPosition==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SongFragment()).commit();
+            if(tabPosition==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new PlaylistFragment()).commit();
+            if(tabPosition==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SelectedSongsFragment()).commit();
         }
 
 
@@ -288,6 +266,7 @@ public Fragment getSongFragmentInstance()
             playIntent = new Intent(getApplicationContext(), MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             startService(playIntent);
+            Log.d(TAG, "onStart MainActivity: service started and binded again ");
         }
         if(musicBound==false && isMyMusicServiceRunning(MusicService.class)) {
             playIntent = new Intent(getApplicationContext(), MusicService.class);
@@ -304,7 +283,7 @@ public Fragment getSongFragmentInstance()
              /*   setController();*/
                 paused=false;
             }
-            if(musicService!=null) Log.d(TAG, "music service is not null ");
+            if(musicService!=null) Log.d(TAG, " onResume: music service is not null ");
             else if(musicService==null) Log.d(TAG, "onResume: music service is null");
 
         }
@@ -322,8 +301,9 @@ public Fragment getSongFragmentInstance()
     protected void onStop() {
         Log.d(TAG,"onStop invoked");
     /*     if(controller.isShowing())controller.hide();*/
-        if(musicBound && musicService!=null) {unbindService(musicConnection); musicBound=false;}
-        Log.d(TAG, "onStop: service unbinded here ");
+        if(musicBound && musicService!=null) { Log.d(TAG, "onStop: service unbinded here ");
+        unbindService(musicConnection); musicBound=false;}
+
         super.onStop();
     }
 

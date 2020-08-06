@@ -46,15 +46,28 @@ public class SelectedSongsFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView: SelectedSongsFragment");
         View viewSelectedSongFragment= inflater.inflate(R.layout.fragment_selected_songs, container, false);
-           MusicSharedPref.setContext(getContext());
-        songView=viewSelectedSongFragment.findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
-         db=new DatabaseHandler(getActivity());
-         songList=db.getAllSongs(MusicSharedPref.getTableName());
 
-            if(((MainActivity)getActivity()).getInstanceOfService()!=null) {
+            MusicSharedPref.setContext(getContext());
+            songView=viewSelectedSongFragment.findViewById(R.id.song_list);
+            songList = new ArrayList<Song>();
+            db=new DatabaseHandler(getActivity());
+            songList=db.getAllSongs(MusicSharedPref.getTableName());
+
+           SongAdapter  songAdapter = new SongAdapter(getActivity(), songList);
+        songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG, "onItemClick: from scheduled fragment to play song");
+                musicService.setSong(position);
+                musicService.songPlaying=true;
+                musicService.playSong();
+            }
+        });
+           songView.setAdapter(songAdapter);
+
+             if(((MainActivity)getActivity()).getInstanceOfService()!=null) {
                 musicService=((MainActivity)getActivity()).getInstanceOfService();
-              musicService.setList(songList);  }
+                musicService.setList(songList);  }
 
         songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -72,7 +85,7 @@ public class SelectedSongsFragment extends Fragment {
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
-                arrayAdapter.add("Play Song");
+             /*   arrayAdapter.add("Play Song");*/
                 arrayAdapter.add("Delete From Playlist");
 
                 builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -138,12 +151,14 @@ public class SelectedSongsFragment extends Fragment {
                             AlertDialog alertDialog = alertDialogBuilder.create();
                             alertDialog.show();
                         }
+/*
                         else if(strName.equals("Play Song")){
                             if(musicService.isPng())musicService.pause();
                             musicService.setSong(position);
                             musicService.songPlaying=true;
                             musicService.playSong();
                         }
+*/
 
                         else if(strName.equals("Delete From Playlist"))
                         {
@@ -200,16 +215,7 @@ public class SelectedSongsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: SelectedSongsFragment");
-        if(MusicSharedPref.getTableName().isEmpty()==false)
-        {
-            Log.d(TAG, "onResume: SelectedSongsFragment songlist loaded here");
-            songList=db.getAllSongs(MusicSharedPref.getTableName());
-            SongAdapter songAdapter=new SongAdapter(getActivity(),songList);
-            songView.setAdapter(songAdapter);
-        }
-        if(((MainActivity)getActivity()).getInstanceOfService()!=null && musicService==null) {
-            musicService=((MainActivity)getActivity()).getInstanceOfService();
-            musicService.setList(songList);  }
+
         if(musicService==null) Log.d(TAG, "onResume of SelectedSongFragment: music service is null");
         else Log.d(TAG, "onResume of SelectedSongFragment: Music service is not null");
 
@@ -221,6 +227,9 @@ public class SelectedSongsFragment extends Fragment {
     public void onStart() {
         super.onStart();
         Log.d(TAG, "onStart: SelectedSongsFragment");
+        if(musicService==null && ((MainActivity)getActivity()).getInstanceOfService()!=null) {
+            musicService=((MainActivity)getActivity()).getInstanceOfService();
+            musicService.setList(songList);  }
     }
 
     @Override

@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,7 +38,6 @@ private  final  String TAG="SongFragment";
     private ListView songView;
     private MusicService musicService;
     private MainActivity instanceOfMainactivity;
-
 
 
 
@@ -59,12 +59,10 @@ private  final  String TAG="SongFragment";
         db=new DatabaseHandler(getActivity());
          getSongList();
 
-
            instanceOfMainactivity= (MainActivity)getActivity();
            if(instanceOfMainactivity.getInstanceOfService()!=null)
            { musicService=instanceOfMainactivity.getInstanceOfService();
                musicService.setList(songList);  }
-
 
 
         Collections.sort(songList, new Comparator<Song>(){
@@ -74,17 +72,16 @@ private  final  String TAG="SongFragment";
         });
 
           songAdapter = new SongAdapter(getActivity(), songList);
-          songView.setAdapter(songAdapter);
-
-
-/*          songView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+          songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
               @Override
               public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                  Log.d(TAG, "onItemClick: from songfragment to play song");
                   musicService.setSong(position);
                   musicService.songPlaying=true;
                   musicService.playSong();
               }
-          });*/
+          });
+          songView.setAdapter(songAdapter);
 
         songView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -102,7 +99,7 @@ private  final  String TAG="SongFragment";
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
-                arrayAdapter.add("Play Song");
+                /*arrayAdapter.add("Play Song");*/
                 arrayAdapter.add("Add to PlayList");
 
                 builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -168,11 +165,11 @@ private  final  String TAG="SongFragment";
                             AlertDialog alertDialog = alertDialogBuilder.create();
                             alertDialog.show();
                         }
-                        else if(strName.equals("Play Song")){
+/*                        else if(strName.equals("Play Song")){
                             musicService.setSong(position);
                             musicService.songPlaying=true;
                             musicService.playSong();
-                        }
+                        }*/
 
                         else if(strName.equals("Add to PlayList"))
                         {
@@ -239,7 +236,7 @@ private  final  String TAG="SongFragment";
 
     @Override
     public void onStart() {
-        if(instanceOfMainactivity.getInstanceOfService()!=null && musicService==null)
+        if(musicService==null && instanceOfMainactivity.getInstanceOfService()!=null)
         { musicService=instanceOfMainactivity.getInstanceOfService();
             musicService.setList(songList);}
         if(musicService==null) Log.d(TAG, "onStart: music service is null");
@@ -249,11 +246,6 @@ private  final  String TAG="SongFragment";
 
     @Override
     public void onResume() {
-        if(instanceOfMainactivity.getInstanceOfService()!=null && musicService==null)
-        { musicService=instanceOfMainactivity.getInstanceOfService();
-            musicService.setList(songList);}
-        if(musicService==null) Log.d(TAG, "onResume: music service is null");
-        else Log.d(TAG, "onResume: Music service is not null");
         super.onResume();
     }
 

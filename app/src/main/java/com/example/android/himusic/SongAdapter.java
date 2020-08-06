@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -30,6 +31,7 @@ public class SongAdapter extends BaseAdapter {
     private ArrayList<Song> songs;
     private LayoutInflater songInflate;
     DatabaseHandler db;
+    private AdapterView.OnItemClickListener onItemClickListenerSongPlay;
     public SongAdapter(Context c, ArrayList<Song> theSongs){
         this.context=c;
         songs=theSongs;
@@ -63,6 +65,7 @@ public class SongAdapter extends BaseAdapter {
         ImageView songImage= (ImageView) songLay.findViewById(R.id.iv_song_image);
         final CheckBox checkBox= (CheckBox)songLay.findViewById(R.id.cb_playlist);
         final Song currSong = songs.get(position);
+        final View view = songLay;
          if(db.getSong(currSong.getID(),"LikedSongs")!=null) checkBox.setChecked(true);
 
         songView.setText(currSong.getTitle());
@@ -74,6 +77,16 @@ public class SongAdapter extends BaseAdapter {
        }
 
         songLay.setTag(position);
+
+       songView.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               if (onItemClickListenerSongPlay != null) {
+                   Log.d(TAG, "onClick: songplay");
+                   onItemClickListenerSongPlay.onItemClick(null, view, position, -1);
+               }
+           }
+       });
 
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,5 +129,8 @@ public class SongAdapter extends BaseAdapter {
         return  imageRounded;
     }
 
+    public void setOnItemClickListener(AdapterView.OnItemClickListener onItemClickListener) {
+        this.onItemClickListenerSongPlay = onItemClickListener;
+    }
 
 }
