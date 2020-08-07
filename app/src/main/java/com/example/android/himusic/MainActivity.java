@@ -22,6 +22,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -32,6 +33,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +44,7 @@ import com.google.android.material.tabs.TabLayout;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity /*implements MediaController.MediaPlayerControl*/ {
 
     private final String TAG="MainActivity";
 
@@ -61,31 +63,34 @@ public class MainActivity extends AppCompatActivity  {
    public TabLayout tabLayout;
 
    public int tabPosition=0;
-
+   public ListView songLView;
+   private Fragment controllerFragmet;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      /*  setController();*/
+        controllerFragmet=new ControllerFragment();
         setContentView(R.layout.activity_main);
-        Log.d(TAG,"onCreate invoked :");
-        db=new DatabaseHandler(MainActivity.this);
+        songLView = findViewById(R.id.song_list);
+        Log.d(TAG, "onCreate invoked :");
+        db = new DatabaseHandler(MainActivity.this);
         db.createPlaylistTable("LikedSongs");
-     MusicSharedPref.setContext(getApplicationContext());
+        MusicSharedPref.setContext(getApplicationContext());
 
-        drawerLayout = (DrawerLayout)findViewById(R.id.activity_drawer);
-        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout,R.string.Open, R.string.Close);
+        drawerLayout = (DrawerLayout) findViewById(R.id.activity_drawer);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.Open, R.string.Close);
 
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        navigationView = (NavigationView)findViewById(R.id.navigation_view);
+        navigationView = (NavigationView) findViewById(R.id.navigation_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int id = item.getItemId();
-                switch(id)
-                {
+                switch (id) {
                     case R.id.my_playlist:
                         LayoutInflater li = LayoutInflater.from(MainActivity.this);
                         View promptsView = li.inflate(R.layout.playlist_dialogbox, null);
@@ -119,7 +124,7 @@ public class MainActivity extends AppCompatActivity  {
                         alertDialog.show();
                         break;
                     case R.id.scheduled_dongs:
-                        if(MusicSharedPref.getScheduleSongName().equals("null")==false) {
+                        if (MusicSharedPref.getScheduleSongName().equals("null") == false) {
                             LayoutInflater lI = LayoutInflater.from(MainActivity.this);
                             View v = lI.inflate(R.layout.scheduled_dialogbox, null);
                             AlertDialog.Builder alertDialogBuilderforAlarm = new AlertDialog.Builder(MainActivity.this);
@@ -214,8 +219,7 @@ public class MainActivity extends AppCompatActivity  {
 
                             AlertDialog alertDialogalarm = alertDialogBuilderforAlarm.create();
                             alertDialogalarm.show();
-                        }
-                        else{
+                        } else {
                             Toast.makeText(MainActivity.this, "No Song added for Scheduled Play ", Toast.LENGTH_LONG).show();
                         }
 
@@ -227,22 +231,23 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
-                 if(isMyMusicServiceRunning(MusicService.class)==false) {
-                     playIntent = new Intent(getApplicationContext(), MusicService.class);
-                     bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-                            startService(playIntent);
-                     Log.d(TAG, "onCreate: service created in oncreate ");
-                 }
-                 else{firstTimePlay=true;}
-           /*     setController();*/
+        if (isMyMusicServiceRunning(MusicService.class) == false) {
+            playIntent = new Intent(getApplicationContext(), MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+            Log.d(TAG, "onCreate: service created in oncreate ");
+        } else {
+            firstTimePlay = true;
+        }
+        /*     setController();*/
 
 
         tabLayout = findViewById(R.id.music_tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Card Songs").setIcon(R.drawable.ic_sdcardstorage));
         tabLayout.addTab(tabLayout.newTab().setText("Playlist").setIcon(R.drawable.ic_playlist_play));
-        if(MusicSharedPref.getTableName().isEmpty()==false)
-        {tabLayout.addTab(tabLayout.newTab().setText(MusicSharedPref.getTableName()).setIcon(R.drawable.ic_selected_playlist));}
-        else{
+        if (MusicSharedPref.getTableName().isEmpty() == false) {
+            tabLayout.addTab(tabLayout.newTab().setText(MusicSharedPref.getTableName()).setIcon(R.drawable.ic_selected_playlist));
+        } else {
             tabLayout.addTab(tabLayout.newTab().setText("Songs").setIcon(R.drawable.ic_selected_playlist));
         }
 
@@ -250,11 +255,14 @@ public class MainActivity extends AppCompatActivity  {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                tabPosition= tab.getPosition();
-                Log.d(TAG, "onTabSelected: "+ tabPosition);
-                if(tabPosition==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SongFragment()).commit();
-                if(tabPosition==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new PlaylistFragment()).commit();
-                if(tabPosition==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SelectedSongsFragment()).commit();
+                tabPosition = tab.getPosition();
+                Log.d(TAG, "onTabSelected: " + tabPosition);
+                if (tabPosition == 0)
+                    getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SongFragment()).commit();
+                if (tabPosition == 1)
+                    getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new PlaylistFragment()).commit();
+                if (tabPosition == 2)
+                    getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SelectedSongsFragment()).commit();
             }
 
             @Override
@@ -267,10 +275,7 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
-
-
     }
-
     public String getTimeStamp(long timeinMillies) {
         String date = null;
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -324,18 +329,6 @@ public MusicService getInstanceOfService()
         return super.onOptionsItemSelected(item);
     }
 
-/*    public void songPicked(View view){
-
-        musicService.setSong(Integer.parseInt(view.getTag().toString()));
-        musicService.songPlaying=true;
-        musicService.playSong();
-        if(playbackPaused){
-        *//*           setController();*//*
-            playbackPaused=false;
-        }
-        Log.d(TAG, "songPicked: controller show called  " + isFinishing());
-*//*          controller.show();*//*
-    }*/
 
 
     private ServiceConnection musicConnection = new ServiceConnection(){
@@ -348,6 +341,7 @@ public MusicService getInstanceOfService()
             if(tabPosition==0) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SongFragment()).commit();
             if(tabPosition==1)  getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new PlaylistFragment()).commit();
             if(tabPosition==2) getSupportFragmentManager().beginTransaction().replace(R.id.frame_container, new SelectedSongsFragment()).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.music_controller_container,controllerFragmet).commit();
         }
 
 
@@ -389,6 +383,7 @@ public MusicService getInstanceOfService()
             if(musicService!=null) Log.d(TAG, " onResume: music service is not null ");
             else if(musicService==null) Log.d(TAG, "onResume: music service is null");
 
+
         }
 
 
@@ -421,70 +416,34 @@ public MusicService getInstanceOfService()
     protected void onDestroy() {
         Log.d(TAG,"onDestroy invoked");
         super.onDestroy();
-
-/*        if(isPlaying()==false && firstTimePlay==false)
-        {
-            if (playIntent != null) stopService(playIntent);
-                 musicService = null;
-            try {
-                if (broadcastNotificationReceiver != null) {
-                    LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(broadcastNotificationReceiver);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (broadcastBatteryReceiver != null) {
-
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-        }*/
     }
 
-/*    private void setController(){
-        if(controller==null) controller = new MusicController(this);
-
+/*    public void setController(){
+        if(controller==null) controller = new MusicController(MainActivity.this);
         controller.setPrevNextListeners(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playNext();
+                musicService.playNext();
             }
         }, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playPrev();
+                musicService.playPrev();
             }
         });
         controller.setMediaPlayer(this);
         controller.setAnchorView(findViewById(R.id.song_list));
         controller.setEnabled(true);
-    }*/
+        Log.d(TAG, "setController: called");
+    }
 
-/*    private void playNext(){
-        musicService.playNext();
-        if(playbackPaused){
-            setController();
-            playbackPaused=false;
-        }
-        musicService.songPlaying=true;
-        musicService.startNotification();
+    public void songPicked(View v){
+        controller.show();
+        Log.d(TAG, "songPicked: controller showing: "+ controller.isShowing());
     }
 
 
-    private void playPrev(){
-        musicService.playPrev();
-        if(playbackPaused){
-            setController();
-            playbackPaused=false;
-        }
-        musicService.songPlaying=true;
-        musicService.startNotification();
-    }*/
 
-
-/*
     @Override
     public void start() {
         musicService.go();
@@ -493,9 +452,7 @@ public MusicService getInstanceOfService()
         setController();
     }
 
-*/
 
-/*
     @Override
     public void pause() {
         musicService.songPlaying=false;
@@ -503,9 +460,7 @@ public MusicService getInstanceOfService()
         musicService.startNotification();
         setController();
     }
-*/
 
-/*
     @Override
     public int getDuration() {
         if(musicService!=null && musicBound && musicService.isPng())
@@ -557,7 +512,6 @@ public MusicService getInstanceOfService()
     @Override
     public int getAudioSessionId() {
         return 0;
-    }
-*/
+    }*/
 
 }

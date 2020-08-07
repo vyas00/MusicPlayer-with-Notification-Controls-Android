@@ -25,11 +25,18 @@
             android:id="@+id/frame_container"
             android:layout_margin="10dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="493dp"
             android:layout_below="@+id/music_tabLayout"
             >
         </FrameLayout>
 
+        <FrameLayout
+            android:id="@+id/music_controller_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/frame_container"
+            >
+        </FrameLayout>
 
     </RelativeLayout>
 

@@ -26,7 +26,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.MediaController;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class SongFragment extends Fragment {
+public class SongFragment extends Fragment{
     public SongFragment() {
     }
 
@@ -45,6 +47,7 @@ public class SongFragment extends Fragment {
     private ListView songView;
     private MusicService musicService;
     private MainActivity instanceOfMainactivity;
+    public   MusicController controller;
 
 
     @Override
@@ -60,11 +63,11 @@ public class SongFragment extends Fragment {
         Log.d(TAG, "onCreateView: of SongFragment");
 
         songView = viewSongFragment.findViewById(R.id.song_list);
-        if(songList.size()==0) getSongList();
-        db = new DatabaseHandler(getActivity());
+         if(songList.size()==0) getSongList();
+         db = new DatabaseHandler(getActivity());
 
-        instanceOfMainactivity = (MainActivity) getActivity();
-        if (instanceOfMainactivity.getInstanceOfService() != null) {
+         instanceOfMainactivity = (MainActivity) getActivity();
+         if (instanceOfMainactivity.getInstanceOfService() != null) {
             musicService = instanceOfMainactivity.getInstanceOfService();
             musicService.setList(songList);
         }
@@ -75,7 +78,6 @@ public class SongFragment extends Fragment {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
-
         songAdapter = new SongAdapter(getActivity(), songList);
         songAdapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -84,6 +86,7 @@ public class SongFragment extends Fragment {
                 musicService.setSong(position);
                 musicService.songPlaying = true;
                 musicService.playSong();
+
             }
         });
         songView.setAdapter(songAdapter);
@@ -104,7 +107,7 @@ public class SongFragment extends Fragment {
 
                 final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getActivity(), android.R.layout.select_dialog_item);
                 arrayAdapter.add("Schedule this song");
-                /*arrayAdapter.add("Play Song");*/
+                arrayAdapter.add("Play Song");
                 arrayAdapter.add("Add to PlayList");
 
                 builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -171,11 +174,11 @@ public class SongFragment extends Fragment {
                             AlertDialog alertDialog = alertDialogBuilder.create();
                             alertDialog.show();
                         }
-/*                        else if(strName.equals("Play Song")){
+                        else if(strName.equals("Play Song")){
                             musicService.setSong(position);
                             musicService.songPlaying=true;
                             musicService.playSong();
-                        }*/
+                        }
 
                         else if (strName.equals("Add to PlayList")) {
                             AlertDialog.Builder builderSingle = new AlertDialog.Builder(getActivity());
@@ -266,6 +269,7 @@ public class SongFragment extends Fragment {
 
     }
 
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -289,5 +293,7 @@ public class SongFragment extends Fragment {
         super.onPause();
         Log.d(TAG, "onPause: SongFragment");
     }
+
+
 
 }

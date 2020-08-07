@@ -2,7 +2,6 @@ package com.example.android.himusic;
 
 import android.content.Context;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.MediaController;
 
@@ -16,17 +15,20 @@ public class MusicController extends MediaController {
         this.context = c;
     }
 
-/*    public void hide(){ }*/
-
     @Override
-    public void show() {
-        super.show(10000);
+    public void show(int timeout) {
+        super.show(timeout);
     }
 
     @Override
     public void hide() {
+    }
+
+    public void hidePermanent()
+    {
         super.hide();
     }
+
 
     @Override
     public void setMediaPlayer(MediaPlayerControl player) {
@@ -47,7 +49,7 @@ public class MusicController extends MediaController {
     public boolean dispatchKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();
         if(keyCode == KeyEvent.KEYCODE_BACK){
-            hide();
+            hidePermanent();
             ((MainActivity) context).onBackPressed();
             return true;
         }
