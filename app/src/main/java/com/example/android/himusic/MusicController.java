@@ -49,7 +49,7 @@ public class MusicController extends MediaController {
     public boolean dispatchKeyEvent(KeyEvent event) {
         int keyCode = event.getKeyCode();
         if(keyCode == KeyEvent.KEYCODE_BACK){
-            hidePermanent();
+       /*     hidePermanent();*/
             ((MainActivity) context).onBackPressed();
             return true;
         }

@@ -47,7 +47,8 @@ public class ControllerFragment extends Fragment implements MediaController.Medi
 
         if(musicService==null) Log.d(TAG, "onCreateView of controller fragment: music service is null");
         else Log.d(TAG, "onCreateView of controller fragment: music service is not null");
-            setController();
+
+         if(!getActivity().isFinishing())   setController();
 
 
         return viewController;
@@ -70,7 +71,7 @@ public class ControllerFragment extends Fragment implements MediaController.Medi
         controller.setMediaPlayer(this);
         controller.setAnchorView(tv_controller);
         controller.setEnabled(true);
-        controller.show(1000000);
+        if(!getActivity().isFinishing())  controller.show();
         Log.d(TAG, "setController: called");
     }
 
